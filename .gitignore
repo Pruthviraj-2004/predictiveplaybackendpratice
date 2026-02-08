@@ -17,3 +17,16 @@ Thumbs.db
 
 # Environment files
 .env
+
+# =========================
+# Django Settings (Secrets)
+# =========================
+settings.py
+*/settings.py
+
+# =========================
+# Databases
+# =========================
+db.sqlite3
+*.sqlite3
+*.db
