@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Select Event | PredictivePlay</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+        }
+        .container {
+            padding: 60px;
+        }
+        .event-card {
+            background: #020617;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            border: 1px solid #1e293b;
+        }
+        .event-card a {
+            text-decoration: none;
+            color: #38bdf8;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .dates {
+            color: #cbd5f5;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Select Cricket Event</h1>
+
+    {% for event in events %}
+        <div class="event-card">
+            <a href="{% url 'fixtures' event.event_id %}">
+                {{ event.event_name }}
+            </a>
+            <div class="dates">
+                {{ event.start_date }} → {{ event.end_date }}
+            </div>
+        </div>
+    {% empty %}
+        <p>No active events available.</p>
+    {% endfor %}
+</div>
+
+</body>
+</html>

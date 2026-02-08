@@ -1,0 +1,6 @@
+from .company import CompanyAdmin
+from .cricket_event import CricketEventAdmin
+from .cricket_team import CricketTeamAdmin
+from .cricket_match_details import CricketMatchDetailsAdmin
+from .cricket_player import CricketPlayerAdmin
+from .cricket_match_winner_details import CricketMatchWinnerDetailsAdmin

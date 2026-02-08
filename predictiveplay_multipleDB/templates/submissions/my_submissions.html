@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Predictions | PredictivePlay</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 60px auto;
+        }
+        h1 {
+            color: #38bdf8;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #020617;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #1e293b;
+            text-align: left;
+        }
+        th {
+            background: #020617;
+            color: #cbd5f5;
+        }
+        tr:hover {
+            background: #020617;
+        }
+        a {
+            color: #38bdf8;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>My Predictions</h1>
+
+    {% if submissions %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Event</th>
+                    <th>Match</th>
+                    <th>Winner</th>
+                    <th>Man of Match</th>
+                    <th>Most Runs</th>
+                    <th>Most Wickets</th>
+                    <th>Last Updated</th>
+                    <th>Edit</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in submissions %}
+                    <tr>
+                        <td>{{ s.event_name }}</td>
+                        <td>{{ s.match_name }}</td>
+                        <td>{{ s.winner_team }}</td>
+                        <td>{{ s.mom }}</td>
+                        <td>{{ s.most_runs }}</td>
+                        <td>{{ s.most_wickets }}</td>
+                        <td>{{ s.updated_at }}</td>
+                        <td>
+                            <a href="{% url 'match_prediction' s.match_id %}">
+                                Edit
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No predictions submitted yet.</p>
+    {% endif %}
+</div>
+
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fixtures | PredictivePlay</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+        }
+        .container {
+            padding: 50px;
+        }
+        h2 {
+            margin-top: 40px;
+            color: #38bdf8;
+        }
+        .match-card {
+            background: #020617;
+            padding: 18px;
+            border-radius: 10px;
+            margin-bottom: 14px;
+            border: 1px solid #1e293b;
+        }
+        .match-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .meta {
+            color: #cbd5f5;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>{{ event.event_name }} Fixtures</h1>
+
+    <!-- UPCOMING -->
+    <h2>Upcoming Matches</h2>
+    {% for match in upcoming_matches %}
+        <a href="{% url 'match_prediction' match.match_id %}" style="text-decoration:none;">
+    <div class="match-card">
+        <div class="match-name">{{ match.match_name2 }}</div>
+        <div class="meta">
+            {{ match.match_date }} | {{ match.match_time }} <br>
+            {{ match.stadium }}, {{ match.location }}
+        </div>
+    </div>
+</a>
+
+    {% empty %}
+        <p>No upcoming matches.</p>
+    {% endfor %}
+
+    <!-- PAST -->
+    <h2>Past Matches</h2>
+    {% for match in past_matches %}
+        <a href="{% url 'match_prediction' match.match_id %}" style="text-decoration:none;">
+    <div class="match-card">
+        <div class="match-name">{{ match.match_name2 }}</div>
+        <div class="meta">
+            {{ match.match_date }} | {{ match.match_time }} <br>
+            {{ match.stadium }}, {{ match.location }}
+        </div>
+    </div>
+</a>
+
+    {% empty %}
+        <p>No past matches.</p>
+    {% endfor %}
+</div>
+
+</body>
+</html>

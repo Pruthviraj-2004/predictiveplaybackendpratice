@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Predict Match | PredictivePlay</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+        }
+        .container {
+            max-width: 600px;
+            margin: 60px auto;
+            background: #020617;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #1e293b;
+        }
+        h2 {
+            color: #38bdf8;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-top: 16px;
+            margin-bottom: 6px;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+        }
+        button {
+            margin-top: 30px;
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            background: #38bdf8;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>{{ match.match_name2 }}</h2>
+    <p>{{ match.match_date }} | {{ match.stadium }}</p>
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        <!-- 1️⃣ Winning Team -->
+        <label>Winning Team</label>
+        <select name="winning_team">
+            <option value="">Select team</option>
+            {% for team in teams %}
+                <option value="{{ team.team_id }}">
+                    {{ team.team_name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <!-- 2️⃣ Player of the Match -->
+        <label>Man of the Match</label>
+        <select name="player_of_match">
+            <option value="">Select player</option>
+            {% for player in mom_players %}
+                <option value="{{ player.player_id }}">
+                    {{ player.player_name }} ({{ player.team.short_name }})
+                </option>
+            {% endfor %}
+        </select>
+
+        <!-- 3️⃣ Most Runs Scorer -->
+        <label>Most Runs Scorer</label>
+        <select name="most_runs">
+            <option value="">Select player</option>
+            {% for player in run_scorers %}
+                <option value="{{ player.player_id }}">
+                    {{ player.player_name }} ({{ player.team.short_name }})
+                </option>
+            {% endfor %}
+        </select>
+
+        <!-- 4️⃣ Most Wicket Taker -->
+        <label>Most Wickets Taker</label>
+        <select name="most_wickets">
+            <option value="">Select player</option>
+            {% for player in wicket_takers %}
+                <option value="{{ player.player_id }}">
+                    {{ player.player_name }} ({{ player.team.short_name }})
+                </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Submit Prediction</button>
+    </form>
+</div>
+
+</body>
+</html>
