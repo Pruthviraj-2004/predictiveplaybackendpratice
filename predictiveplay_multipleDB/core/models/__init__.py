@@ -10,3 +10,4 @@ from .leaderboard import Leaderboard
 from .leaderboard_user import LeaderboardUser
 from .leaderboard_points import LeaderboardPoints
 from .refresh_token import RefreshToken
+from .final_leaderboard_points import FinalLeaderboardPoints

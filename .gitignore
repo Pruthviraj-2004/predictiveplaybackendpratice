@@ -30,3 +30,9 @@ settings.py
 db.sqlite3
 *.sqlite3
 *.db
+
+# =========================
+# Django Migrations
+# =========================
+**/migrations/
+!**/migrations/__init__.py

@@ -27,6 +27,7 @@ class SmartDBRouter:
         "leaderboarduser",
         "leaderboardpoints",
         "refreshtoken",
+        "finalleaderboardpoints",
     }
 
     # ---------- CORE RESOLUTION ----------
