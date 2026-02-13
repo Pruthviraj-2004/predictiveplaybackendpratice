@@ -295,3 +295,65 @@ class MatchPredictionAPIViewV2(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+from core.models.cricket_match_details import CricketMatchDetails
+
+
+class ActiveMatchesAPIViewV2(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [HasValidJWT]
+
+    def get(self, request):
+        token = request.auth
+
+        matches = (
+            CricketMatchDetails.objects
+            .select_related("event", "team1", "team2")
+            .filter(
+                is_active=True,
+                is_deleted=False,
+                status_id__in=[
+                    CricketMatchDetails.STATUS_SCHEDULED,
+                    CricketMatchDetails.STATUS_LIVE,
+                ],
+            )
+            .order_by("match_date", "match_time")
+        )
+
+        data = []
+
+        for match in matches:
+            data.append({
+                "match_id": match.match_id,
+                "display_match_id": match.display_match_id,
+                "match_date": match.match_date,
+                "match_time": match.match_time,
+                "status_id": match.status_id,
+                "status_label": match.get_status_id_display(),
+                "allow_predictions": match.allow_predictions,
+                "event": {
+                    "event_id": match.event.event_id,
+                    "event_name": match.event.event_name,
+                },
+                "team1": {
+                    "team_id": match.team1.team_id,
+                    "team_display_id": match.team1.display_team_id,
+                    "team_name": match.team1.team_name,
+                    "short_name": match.team1.short_name,
+                },
+                "team2": {
+                    "team_id": match.team2.team_id,
+                    "team_display_id": match.team2.display_team_id,
+                    "team_name": match.team2.team_name,
+                    "short_name": match.team2.short_name,
+                },
+            })
+
+        return Response(
+            {"matches": data},
+            status=status.HTTP_200_OK,
+        )

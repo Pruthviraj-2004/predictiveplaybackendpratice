@@ -9,7 +9,7 @@ from core.views.auth import (
     LogoutAPIView,
 )
 from core.views.fixtures_view import SelectEventViewV1, FixturesViewV1, FixturesAPIViewV2, SelectEventAPIViewV2
-from core.views.matches_views import MatchPredictionAPIViewV2, MatchPredictionViewV1
+from core.views.matches_views import ActiveMatchesAPIViewV2, MatchPredictionAPIViewV2, MatchPredictionViewV1
 from core.views.user_submissions import MySubmissionsAPIViewV2, MySubmissionsViewV1
 
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -41,5 +41,7 @@ urlpatterns = [
     path("v2/leaderboard/events/", LeaderboardEventsAPIViewV2.as_view(), name="leaderboard_events_v2"),
     path("v2/leaderboard/list/by-event/<event_id>/", UserLeaderboardsByEventAPIViewV2.as_view(), name="user_leaderboards_by_event_v2"),
     path("v2/leaderboard/board/<uuid:leaderboard_id>/", LeaderboardBoardAPIViewV2.as_view(), name="leaderboard_board_v2"),
+    path("v2/active-matches/", ActiveMatchesAPIViewV2.as_view(), name="active_matches_v2"),
+
 
 ]
