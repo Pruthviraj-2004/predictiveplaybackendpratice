@@ -29,10 +29,6 @@ urlpatterns = [
     path("v1/my-submissions/", MySubmissionsViewV1.as_view(), name="my_submissions"),
 
 
-    path("token/refresh/", CookieTokenRefreshView.as_view(), name="token-refresh"),
-    path("auth/refresh/", RefreshTokenAPIView.as_view(), name="token_refresh"),
-
-
     path("v2/login/", LoginAPIViewV2.as_view(), name="login_v2"),
     path("v2/fixtures/events/", SelectEventAPIViewV2.as_view(), name="select_event_v2"),
     path("v2/fixtures/events/<uuid:event_id>/", FixturesAPIViewV2.as_view(), name="fixtures_v2"),
@@ -43,5 +39,6 @@ urlpatterns = [
     path("v2/leaderboard/board/<uuid:leaderboard_id>/", LeaderboardBoardAPIViewV2.as_view(), name="leaderboard_board_v2"),
     path("v2/active-matches/", ActiveMatchesAPIViewV2.as_view(), name="active_matches_v2"),
 
+    path("v2/refresh/", RefreshTokenAPIView.as_view(), name="token_refresh"),
 
 ]

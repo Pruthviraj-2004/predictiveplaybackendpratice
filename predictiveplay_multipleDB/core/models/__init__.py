@@ -9,5 +9,5 @@ from .user_submission import UserSubmission
 from .leaderboard import Leaderboard
 from .leaderboard_user import LeaderboardUser
 from .leaderboard_points import LeaderboardPoints
-from .refresh_token import RefreshToken
+from .refresh_token import RefreshTokenNew
 from .final_leaderboard_points import FinalLeaderboardPoints

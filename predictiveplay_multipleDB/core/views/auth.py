@@ -71,7 +71,7 @@ from core.models import CompanyUser
 from core.utils.company import get_company_db
 from core.utils.passwords import verify_password
 from core.accounts.tokens import CustomRefreshToken
-from core.models.refresh_token import RefreshToken 
+from core.models.refresh_token import RefreshTokenNew as RefreshToken
 
 class LoginAPIViewV1(APIView):
     permission_classes = []
@@ -208,76 +208,65 @@ from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 
 from rest_framework_simplejwt.exceptions import TokenError
 from core.accounts.tokens import CustomRefreshToken
-from core.models.refresh_token import RefreshToken
+from core.models.refresh_token import RefreshTokenNew as RefreshToken
 
 
 class RefreshTokenAPIView(APIView):
-    permission_classes = []
+    permission_classes = [AllowAny]
+    authentication_classes = []
 
     def post(self, request):
         raw_refresh = request.COOKIES.get("refresh_token")
 
         if not raw_refresh:
-            return Response(
-                {"detail": "Refresh token missing"},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
+            return Response({"detail": "Refresh token missing"}, status=401)
 
         try:
             refresh = CustomRefreshToken(raw_refresh)
         except TokenError:
-            return Response(
-                {"detail": "Invalid refresh token"},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
+            return Response({"detail": "Invalid refresh token"}, status=401)
 
-        jti = refresh.get("jti")
+        company_display_id = refresh["company_display_id"]
+        user_id = refresh["user_id"]
+        jti = refresh["jti"]
+
+        db_alias = get_company_db(company_display_id)
 
         try:
-            token_obj = RefreshToken.objects.get(jti=jti)
+            token_obj = RefreshToken.objects.using(db_alias).get(jti=jti)
         except RefreshToken.DoesNotExist:
-            # 🚨 Reuse detected
-            return Response(
-                {"detail": "Token reuse detected"},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
+            return Response({"detail": "Token reuse detected"}, status=401)
 
         if token_obj.is_revoked:
-            # 🚨 Reuse detected
-            return Response(
-                {"detail": "Token revoked"},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
+            return Response({"detail": "Token revoked"}, status=401)
 
-        # ✅ Rotate: revoke old refresh token
-        token_obj.revoke()
+        token_obj.is_revoked = True
+        token_obj.save(using=db_alias)
 
-        # ✅ Mint new refresh token
+        user = CompanyUser.objects.using(db_alias).get(user_id=user_id)
+
         new_refresh = CustomRefreshToken.for_user(
-            user_id=refresh["user_id"],
-            company_display_id=refresh["company_display_id"],
+            user=user,
+            company_display_id=company_display_id,
         )
 
-        RefreshToken.objects.create(
+        RefreshToken.objects.using(db_alias).create(
             jti=new_refresh["jti"],
-            user_id=refresh["user_id"],
-            company_display_id=refresh["company_display_id"],
+            user_id=user_id,
+            company_display_id=company_display_id,
             expires_at=timezone.now() + new_refresh.lifetime,
         )
 
-        response = Response(
-            {"message": "Token refreshed"},
-            status=status.HTTP_200_OK,
-        )
+        response = Response({"message": "Token refreshed"}, status=200)
 
         response.set_cookie(
             "access_token",
             str(new_refresh.access_token),
             httponly=True,
-            secure=False,
             samesite="Lax",
         )
 
@@ -285,7 +274,6 @@ class RefreshTokenAPIView(APIView):
             "refresh_token",
             str(new_refresh),
             httponly=True,
-            secure=False,
             samesite="Lax",
         )
 
@@ -305,7 +293,8 @@ from core.accounts.tokens import CustomRefreshToken
 
 
 class LoginAPIViewV2(APIView):
-    permission_classes = []
+    permission_classes = [AllowAny]
+    authentication_classes = []
 
     def post(self, request):
         company_display_id = request.data.get("company_display_id")
@@ -360,14 +349,17 @@ class LoginAPIViewV2(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        # ✅ Update last login
-        user.last_login_at = timezone.now()
-        user.save(using=db_alias)
-
         # ✅ Mint JWT
         refresh = CustomRefreshToken.for_user(
             user=user,
             company_display_id=company_display_id,
+        )
+
+        RefreshToken.objects.using(db_alias).create(
+            jti=refresh["jti"],
+            user_id=user.user_id,
+            company_display_id=company_display_id,
+            expires_at=timezone.now() + refresh.lifetime,
         )
 
         response = Response(
