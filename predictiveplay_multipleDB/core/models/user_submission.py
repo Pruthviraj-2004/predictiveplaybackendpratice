@@ -38,6 +38,11 @@ class UserSubmission(models.Model):
     points_wickets = models.IntegerField(default=0)
     total_points = models.IntegerField(default=0)
 
+    flag_winner = models.BooleanField(default=False)
+    flag_mom = models.BooleanField(default=False)
+    flag_mruns = models.BooleanField(default=False)
+    flag_mwickets = models.BooleanField(default=False)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

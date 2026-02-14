@@ -170,6 +170,15 @@ class MySubmissionsAPIViewV2(APIView):
                 "predicted_player_of_match": players.get(sub.predicted_player_of_match_id),
                 "predicted_most_runs": players.get(sub.predicted_most_runs_player_id),
                 "predicted_most_wickets": players.get(sub.predicted_most_wickets_taker_id),
+                "points_winner": sub.points_winner,
+                "points_mom": sub.points_mom,
+                "points_runs": sub.points_runs,
+                "points_wickets": sub.points_wickets,
+                "total_points": sub.total_points,
+                "flag_winner": sub.flag_winner,
+                "flag_mom": sub.flag_mom,
+                "flag_mruns": sub.flag_mruns,
+                "flag_mwickets": sub.flag_mwickets,
                 "updated_at": sub.updated_at,
             })
 
