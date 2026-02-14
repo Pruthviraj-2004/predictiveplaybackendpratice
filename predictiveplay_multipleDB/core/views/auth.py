@@ -375,8 +375,8 @@ class LoginAPIViewV2(APIView):
             key="access_token",
             value=str(refresh.access_token),
             httponly=True,
-            secure=False,   # True in prod (HTTPS)
-            samesite="Lax",
+            secure=True,   # True in prod (HTTPS)
+            samesite="None",
         )
 
         # ✅ Refresh token (long-lived)
@@ -384,8 +384,8 @@ class LoginAPIViewV2(APIView):
             key="refresh_token",
             value=str(refresh),
             httponly=True,
-            secure=False,   # True in prod
-            samesite="Lax",
+            secure=True,   # True in prod (HTTPS)
+            samesite="None",
         )
 
         return response
