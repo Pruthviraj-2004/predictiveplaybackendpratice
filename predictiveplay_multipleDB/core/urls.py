@@ -14,7 +14,7 @@ from core.views.user_submissions import MySubmissionsAPIViewV2, MySubmissionsByE
 
 from rest_framework_simplejwt.views import TokenRefreshView
 from core.views.token_refresh import CookieTokenRefreshView
-from core.views.leaderboard_views import LeaderboardBoardAPIViewV2, LeaderboardEventsAPIViewV2, UserLeaderboardsByEventAPIViewV2
+from core.views.leaderboard_views import LeaderboardBoardAPIViewV2, LeaderboardBoardPaginatedAPIViewV2, LeaderboardEventsAPIViewV2, UserLeaderboardsByEventAPIViewV2
 
 
 
@@ -37,6 +37,7 @@ urlpatterns = [
     path("v2/leaderboard/events/", LeaderboardEventsAPIViewV2.as_view(), name="leaderboard_events_v2"),
     path("v2/leaderboard/list/by-event/<event_id>/", UserLeaderboardsByEventAPIViewV2.as_view(), name="user_leaderboards_by_event_v2"),
     path("v2/leaderboard/board/<uuid:leaderboard_id>/", LeaderboardBoardAPIViewV2.as_view(), name="leaderboard_board_v2"),
+    path("v2/leaderboard/board-paginated/<uuid:leaderboard_id>/",LeaderboardBoardPaginatedAPIViewV2.as_view(),name="leaderboard_board_paginated_v2"),
     path("v2/active-matches/", ActiveMatchesAPIViewV2.as_view(), name="active_matches_v2"),
     path("v2/my-submissions/event/<event_id>/", MySubmissionsByEventAPIViewV2.as_view(), name="my_submissions_by_event_v2"),
 

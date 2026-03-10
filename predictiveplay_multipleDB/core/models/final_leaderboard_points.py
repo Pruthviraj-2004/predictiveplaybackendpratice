@@ -9,7 +9,6 @@ class FinalLeaderboardPoints(models.Model):
 
     # Reference to LeaderboardUser (UUID only, no FK)
     leaderboard_user_id = models.UUIDField(
-        unique=True,
         help_text="LeaderboardUser UUID"
     )
 
@@ -19,6 +18,16 @@ class FinalLeaderboardPoints(models.Model):
 
     points2 = models.IntegerField(
         default=0
+    )
+
+    match_id = models.UUIDField(
+        null=True,
+        blank=True
+    )
+
+    match_number = models.IntegerField(
+        null=True,
+        blank=True
     )
 
     updated_on = models.DateTimeField(
@@ -31,6 +40,7 @@ class FinalLeaderboardPoints(models.Model):
 
         indexes = [
             models.Index(fields=["leaderboard_user_id"]),
+            models.Index(fields=["match_number"]),
             models.Index(fields=["points1"]),
             models.Index(fields=["points2"]),
         ]
