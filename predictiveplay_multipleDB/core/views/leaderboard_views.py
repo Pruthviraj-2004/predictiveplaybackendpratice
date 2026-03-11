@@ -66,6 +66,14 @@ class LeaderboardEventsAPIViewV2(APIView):
 
             response_events.append({
                 "event_id": event.event_id,
+                "event_display_id": event.display_event_id,
+                "event_name": event.event_name,
+                "short_name": event.short_name,
+                "event_start_date": event.start_date,
+                "event_end_date": event.end_date,
+                "event_status": event.status,
+                "location": event.location,
+                "allow_predictions": event.allow_predictions,
                 "has_leaderboard": len(leaderboards_for_event) > 0,
                 "leaderboards_count": len(leaderboards_for_event),
                 "leaderboard_ids": leaderboards_for_event
