@@ -200,13 +200,18 @@ class MatchPredictionAPIViewV2(APIView):
             match_id=match.match_id
         ).first()
 
-        submission_data = None
         if submission:
             submission_data = {
+                "is_submitted": True,
                 "predicted_winner_team_id": submission.predicted_winner_team_id,
                 "predicted_player_of_match_id": submission.predicted_player_of_match_id,
                 "predicted_most_runs_player_id": submission.predicted_most_runs_player_id,
                 "predicted_most_wickets_taker_id": submission.predicted_most_wickets_taker_id,
+                "submitted_at": submission.updated_at,
+            }
+        else:
+            submission_data = {
+                "is_submitted": False
             }
 
         return Response(
