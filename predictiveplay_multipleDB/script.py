@@ -186,3 +186,48 @@ django.setup()
 #         created += 1
 
 # print("Rows created:", created)
+
+# update ranks in FinalLeaderboardPoints table for all matches
+
+# from core.models.final_leaderboard_points import FinalLeaderboardPoints
+# from django.db import connections
+
+# DB = "company_kt5xg8b0"
+
+# # Get all match numbers
+# match_numbers = (
+#     FinalLeaderboardPoints.objects.using(DB)
+#     .values_list("match_number", flat=True)
+#     .distinct()
+#     .order_by("match_number")
+# )
+
+# previous_rank_map = {}
+
+# for match in match_numbers:
+
+#     rows = list(
+#         FinalLeaderboardPoints.objects.using(DB)
+#         .filter(match_number=match)
+#     )
+
+#     # sort by total points
+#     rows.sort(key=lambda x: (x.points1 + x.points2), reverse=True)
+
+#     current_rank_map = {}
+
+#     for idx, row in enumerate(rows, start=1):
+
+#         row.rank = idx
+#         row.previous_rank = previous_rank_map.get(row.leaderboard_user_id)
+
+#         current_rank_map[row.leaderboard_user_id] = idx
+
+#     FinalLeaderboardPoints.objects.using(DB).bulk_update(
+#         rows,
+#         ["rank", "previous_rank"]
+#     )
+
+#     previous_rank_map = current_rank_map
+
+# print("Ranks and previous ranks updated successfully")

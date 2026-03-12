@@ -188,9 +188,9 @@ class LeaderboardBoardAPIViewV2(APIView):
         leaderboard_users = LeaderboardUser.objects.using(db_alias).filter(
             leaderboard_id=leaderboard_id,
             is_deleted=False
-        )
+        ).values("leaderboard_user_id", "user_id")
 
-        user_count = leaderboard_users.count()
+        user_count = len(leaderboard_users)
 
         if user_count == 0:
             return Response(
@@ -202,14 +202,11 @@ class LeaderboardBoardAPIViewV2(APIView):
                 status=status.HTTP_200_OK,
             )
 
-        leaderboard_user_ids = list(
-            leaderboard_users.values_list("leaderboard_user_id", flat=True)
-        )
+        leaderboard_user_ids = [u["leaderboard_user_id"] for u in leaderboard_users]
 
-        # ---------- Map leaderboard_user → user ----------
         leaderboard_user_to_user = {
-            lu.leaderboard_user_id: lu.user_id
-            for lu in leaderboard_users
+            u["leaderboard_user_id"]: u["user_id"]
+            for u in leaderboard_users
         }
 
         user_ids = list(leaderboard_user_to_user.values())
@@ -217,9 +214,9 @@ class LeaderboardBoardAPIViewV2(APIView):
         # ---------- Fetch usernames ----------
         users = {
             u.user_id: u.username
-            for u in CompanyUser.objects.using(db_alias).filter(
-                user_id__in=user_ids
-            )
+            for u in CompanyUser.objects.using(db_alias)
+            .filter(user_id__in=user_ids)
+            .only("user_id", "username")
         }
 
         # ---------- Latest match ----------
@@ -242,87 +239,58 @@ class LeaderboardBoardAPIViewV2(APIView):
                 status=status.HTTP_200_OK
             )
 
-        previous_match = latest_match - 1 if latest_match > 1 else None
-
-        # ---------- Current leaderboard ----------
-        current_points = FinalLeaderboardPoints.objects.using(db_alias).filter(
-            leaderboard_user_id__in=leaderboard_user_ids,
-            match_number=latest_match
+        # ---------- Fetch leaderboard ----------
+        leaderboard_rows = (
+            FinalLeaderboardPoints.objects.using(db_alias)
+            .filter(
+                leaderboard_user_id__in=leaderboard_user_ids,
+                match_number=latest_match
+            )
+            .order_by("rank")
+            .only(
+                "leaderboard_user_id",
+                "points1",
+                "points2",
+                "rank",
+                "previous_rank"
+            )
         )
 
         rows = []
 
-        for fp in current_points:
+        for fp in leaderboard_rows:
 
             user_id = leaderboard_user_to_user.get(fp.leaderboard_user_id)
 
             total = fp.points1 + fp.points2
 
+            prev_rank = fp.previous_rank
+            curr_rank = fp.rank
+
+            if prev_rank is None:
+                delta_position = 0
+                delta_rank = 0
+            else:
+                delta = prev_rank - curr_rank
+
+                if delta > 0:
+                    delta_position = 1
+                elif delta < 0:
+                    delta_position = 2
+                else:
+                    delta_position = 0
+
+                delta_rank = abs(delta)
+
             rows.append({
-                "leaderboard_user_id": fp.leaderboard_user_id,
                 "username": users.get(user_id, "Unknown"),
                 "points1": fp.points1,
                 "points2": fp.points2,
                 "total_points": total,
+                "rank": curr_rank,
+                "delta_position": delta_position,
+                "delta_rank": delta_rank,
             })
-
-        # ---------- Sort ----------
-        rows.sort(key=lambda x: x["total_points"], reverse=True)
-
-        current_rank_map = {}
-
-        for idx, row in enumerate(rows, start=1):
-            row["rank"] = idx
-            current_rank_map[row["leaderboard_user_id"]] = idx
-
-        # ---------- Previous leaderboard ----------
-        previous_rank_map = {}
-
-        if previous_match:
-
-            prev_points = FinalLeaderboardPoints.objects.using(db_alias).filter(
-                leaderboard_user_id__in=leaderboard_user_ids,
-                match_number=previous_match
-            )
-
-            prev_rows = []
-
-            for fp in prev_points:
-                total = fp.points1 + fp.points2
-                prev_rows.append({
-                    "leaderboard_user_id": fp.leaderboard_user_id,
-                    "total_points": total
-                })
-
-            prev_rows.sort(key=lambda x: x["total_points"], reverse=True)
-
-            for idx, row in enumerate(prev_rows, start=1):
-                previous_rank_map[row["leaderboard_user_id"]] = idx
-
-        # ---------- Compute delta ----------
-        for row in rows:
-            user_lb_id = row["leaderboard_user_id"]
-
-            prev_rank = previous_rank_map.get(user_lb_id)
-            curr_rank = row["rank"]
-
-            if prev_rank is None:
-                row["delta_position"] = 0
-                row["delta_rank"] = 0
-            else:
-
-                delta = prev_rank - curr_rank
-
-                if delta > 0:
-                    row["delta_position"] = 1   # moved up
-                elif delta < 0:
-                    row["delta_position"] = 2   # moved down
-                else:
-                    row["delta_position"] = 0   # unchanged
-
-                row["delta_rank"] = abs(delta)
-
-            del row["leaderboard_user_id"]
 
         return Response(
             {

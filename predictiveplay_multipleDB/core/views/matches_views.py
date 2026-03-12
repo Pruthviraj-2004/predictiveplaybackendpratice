@@ -293,7 +293,6 @@ class MatchPredictionAPIViewV2(APIView):
         
         # ---------- VALIDATE TEAM ----------
         valid_team_ids = {match.team1.team_id, match.team2.team_id}
-        print(valid_team_ids)
 
         if winning_team_id not in valid_team_ids:
             return Response(
@@ -310,7 +309,6 @@ class MatchPredictionAPIViewV2(APIView):
                 is_deleted=False
             ).values_list("player_id", flat=True)
         )
-        print(valid_players)
 
         if pom_id not in valid_players:
             return Response(

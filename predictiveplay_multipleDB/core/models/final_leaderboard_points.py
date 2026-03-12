@@ -30,6 +30,16 @@ class FinalLeaderboardPoints(models.Model):
         blank=True
     )
 
+    rank = models.IntegerField(
+        null=True, 
+        blank=True
+    )
+
+    previous_rank = models.IntegerField(
+        null=True, 
+        blank=True
+    )
+
     updated_on = models.DateTimeField(
         auto_now=True
     )
