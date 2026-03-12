@@ -9,6 +9,7 @@ from core.models.user_submission import UserSubmission
 from core.models.cricket_match_details import CricketMatchDetails
 from core.models.cricket_team import CricketTeam
 from core.models.cricket_player import CricketPlayer
+from core.models.cricket_match_winner_details import CricketMatchWinnerDetails
 
 
 class MySubmissionsViewV1(APIView):
@@ -257,11 +258,22 @@ class MySubmissionsByEventAPIViewV2(APIView):
             for p in CricketPlayer.objects.filter(player_id__in=player_ids)
         }
 
+        winner_details = {
+            w.match_id: w
+            for w in CricketMatchWinnerDetails.objects.select_related(
+                "winner_team",
+                "player_of_match",
+                "most_runs_player",
+                "most_wickets_taker"
+            ).filter(match_id__in=match_ids)
+        }
+
         # ---------- Build response ----------
         submission_rows = []
 
         for sub in submissions:
             match = matches.get(sub.match_id)
+            winner = winner_details.get(sub.match_id)
             if not match:
                 continue
 
@@ -272,19 +284,32 @@ class MySubmissionsByEventAPIViewV2(APIView):
                 "match_name": match.match_name2,
                 "team1": match.team1.team_name,
                 "team2": match.team2.team_name,
+
+                # ---------- Actual Results ----------
+                "actual_winner_team": winner.winner_team.team_name if winner and winner.winner_team else None,
+                "actual_player_of_match": winner.player_of_match.player_name if winner and winner.player_of_match else None,
+                "actual_most_runs_player": winner.most_runs_player.player_name if winner and winner.most_runs_player else None,
+                "actual_most_wickets_taker": winner.most_wickets_taker.player_name if winner and winner.most_wickets_taker else None,
+
+                # ---------- User Predictions ----------
                 "predicted_winner_team": teams.get(sub.predicted_winner_team_id),
                 "predicted_player_of_match": players.get(sub.predicted_player_of_match_id),
                 "predicted_most_runs": players.get(sub.predicted_most_runs_player_id),
                 "predicted_most_wickets": players.get(sub.predicted_most_wickets_taker_id),
+
+                # ---------- Points ----------
                 "points_winner": sub.points_winner,
                 "points_mom": sub.points_mom,
                 "points_runs": sub.points_runs,
                 "points_wickets": sub.points_wickets,
                 "total_points": sub.total_points,
+
+                # ---------- Flags ----------
                 "flag_winner": sub.flag_winner,
                 "flag_mom": sub.flag_mom,
                 "flag_mruns": sub.flag_mruns,
                 "flag_mwickets": sub.flag_mwickets,
+
                 "updated_at": sub.updated_at,
             })
 
