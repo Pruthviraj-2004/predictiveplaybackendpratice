@@ -118,6 +118,7 @@ class MatchPredictionViewV1(APIView):
         return redirect("fixtures", event_id=match.event.event_id)
 
 from django.utils import timezone
+import uuid
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -277,7 +278,58 @@ class MatchPredictionAPIViewV2(APIView):
                 {"detail": "All prediction fields are required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        
+        # ---------- CONVERT STRING IDs TO UUID ----------
+        try:
+            winning_team_id = uuid.UUID(winning_team_id)
+            pom_id = uuid.UUID(pom_id)
+            runs_id = uuid.UUID(runs_id)
+            wickets_id = uuid.UUID(wickets_id)
+        except (ValueError, TypeError):
+            return Response(
+                {"detail": "Invalid UUID format in submission"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        # ---------- VALIDATE TEAM ----------
+        valid_team_ids = {match.team1.team_id, match.team2.team_id}
+        print(valid_team_ids)
 
+        if winning_team_id not in valid_team_ids:
+            return Response(
+                {"detail": "Selected winning team does not belong to this match"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # ---------- VALIDATE PLAYERS ----------
+        valid_players = set(
+            CricketPlayer.objects.filter(
+                team__in=[match.team1, match.team2],
+                event=match.event,
+                is_active=True,
+                is_deleted=False
+            ).values_list("player_id", flat=True)
+        )
+        print(valid_players)
+
+        if pom_id not in valid_players:
+            return Response(
+                {"detail": "Player of Match does not belong to this match teams"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if runs_id not in valid_players:
+            return Response(
+                {"detail": "Most Runs player does not belong to this match teams"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if wickets_id not in valid_players:
+            return Response(
+                {"detail": "Most Wickets player does not belong to this match teams"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
         # ---------- SAVE / UPDATE (company DB) ----------
         UserSubmission.objects.using(db_alias).update_or_create(
             user_id=user_id,
@@ -297,6 +349,10 @@ class MatchPredictionAPIViewV2(APIView):
                 "message": "Prediction saved successfully",
                 "match_id": match.match_id,
                 "event_id": match.event.event_id,
+                "predicted_winner_team_id": winning_team_id,
+                "predicted_player_of_match_id": pom_id,
+                "predicted_most_runs_player_id": runs_id,
+                "predicted_most_wickets_taker_id": wickets_id,
             },
             status=status.HTTP_200_OK,
         )
