@@ -83,4 +83,4 @@ class CricketPlayer(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.player_name} ({self.team.short_name})"
+        return f"{self.player_name} ({self.team.short_name}) ({self.team.event.short_name})"
