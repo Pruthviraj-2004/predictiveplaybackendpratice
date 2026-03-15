@@ -280,6 +280,7 @@ class MySubmissionsByEventAPIViewV2(APIView):
 
             row = {
                 "match_id": match.match_id,
+                "match_display_id": match.display_match_id,
                 "event_id": match.event.event_id,
                 "event_name": match.event.event_name,
                 "event_short_name": match.event.short_name,
