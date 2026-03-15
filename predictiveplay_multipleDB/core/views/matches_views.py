@@ -222,6 +222,7 @@ class MatchPredictionAPIViewV2(APIView):
                     "match_id": match.match_id,
                     "match_date": match.match_date,
                     "match_time": match.match_time,
+                    "status_id": match.get_status_id_display(),
                     "event_id": match.event.event_id,
                     "event_name": match.event.event_name,
                     "team1": {
@@ -394,6 +395,8 @@ class ActiveMatchesAPIViewV2(APIView):
                 "display_match_id": match.display_match_id,
                 "match_date": match.match_date,
                 "match_time": match.match_time,
+                "location": match.location,
+                "stadium": match.stadium,
                 "status_id": match.status_id,
                 "status_label": match.get_status_id_display(),
                 "allow_predictions": match.allow_predictions,
