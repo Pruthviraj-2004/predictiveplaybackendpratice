@@ -190,6 +190,16 @@ class LeaderboardBoardAPIViewV2(APIView):
             is_deleted=False
         ).values("leaderboard_user_id", "user_id")
 
+        current_user_id = uuid.UUID(token["user_id"])
+
+        current_leaderboard_user_id = None
+        current_user_rank = None
+
+        for u in leaderboard_users:
+            if u["user_id"] == current_user_id:
+                current_leaderboard_user_id = u["leaderboard_user_id"]
+                break
+
         user_count = len(leaderboard_users)
 
         if user_count == 0:
@@ -256,31 +266,30 @@ class LeaderboardBoardAPIViewV2(APIView):
             )
         )
 
+        current_user_rank = FinalLeaderboardPoints.objects.using(db_alias).filter(
+            leaderboard_user_id=current_leaderboard_user_id,
+            match_number=latest_match
+        ).values_list("rank", flat=True).first()
+
         rows = []
 
         for fp in leaderboard_rows:
 
-            user_id = leaderboard_user_to_user.get(fp.leaderboard_user_id)
+            lb_user_id = fp.leaderboard_user_id
+            user_id = leaderboard_user_to_user.get(lb_user_id)
 
+            curr_rank = fp.rank
+            prev_rank = fp.previous_rank
             total = fp.points1 + fp.points2
 
-            prev_rank = fp.previous_rank
-            curr_rank = fp.rank
-
-            if prev_rank is None:
+            # Compute delta
+            if prev_rank:
+                delta = prev_rank - curr_rank
+                delta_position = 1 if delta > 0 else 2 if delta < 0 else 0
+                delta_rank = abs(delta)
+            else:
                 delta_position = 0
                 delta_rank = 0
-            else:
-                delta = prev_rank - curr_rank
-
-                if delta > 0:
-                    delta_position = 1
-                elif delta < 0:
-                    delta_position = 2
-                else:
-                    delta_position = 0
-
-                delta_rank = abs(delta)
 
             rows.append({
                 "username": users.get(user_id, "Unknown"),
@@ -299,6 +308,7 @@ class LeaderboardBoardAPIViewV2(APIView):
                 "event_id": leaderboard.event_id,
                 "match_number": latest_match,
                 "user_count": user_count,
+                "current_user_rank": current_user_rank,
                 "rows": rows,
             },
             status=status.HTTP_200_OK,
