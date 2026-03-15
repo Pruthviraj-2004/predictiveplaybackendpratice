@@ -227,16 +227,19 @@ class MatchPredictionAPIViewV2(APIView):
                     "team1": {
                         "team_id": match.team1.team_id,
                         "team_name": match.team1.team_name,
+                        "team_short_name": match.team1.short_name,
                     },
                     "team2": {
                         "team_id": match.team2.team_id,
                         "team_name": match.team2.team_name,
+                        "team_short_name": match.team2.short_name,
                     },
                 },
                 "teams": [
                     {
                         "team_id": t.team_id,
                         "team_name": t.team_name,
+                        "team_short_name": t.short_name,
                     }
                     for t in teams
                 ],

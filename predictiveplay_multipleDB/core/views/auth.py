@@ -199,8 +199,19 @@ class LogoutAPIView(APIView):
 
     def post(self, request):
         response = redirect("login")
-        response.delete_cookie("access_token")
-        response.delete_cookie("refresh_token")
+
+        response.delete_cookie(
+            "access_token",
+            path="/",
+            samesite="None",
+        )
+
+        response.delete_cookie(
+            "refresh_token",
+            path="/",
+            samesite="None",
+        )
+
         return response
 
 
@@ -264,17 +275,21 @@ class RefreshTokenAPIView(APIView):
         response = Response({"message": "Token refreshed"}, status=200)
 
         response.set_cookie(
-            "access_token",
-            str(new_refresh.access_token),
+            key="access_token",
+            value=str(new_refresh.access_token),
             httponly=True,
-            samesite="Lax",
+            secure=True,
+            samesite="None",
+            path="/",
         )
 
         response.set_cookie(
-            "refresh_token",
-            str(new_refresh),
+            key="refresh_token",
+            value=str(new_refresh),
             httponly=True,
-            samesite="Lax",
+            secure=True,
+            samesite="None",
+            path="/",
         )
 
         return response
@@ -377,6 +392,8 @@ class LoginAPIViewV2(APIView):
             httponly=True,
             secure=True,   # True in prod (HTTPS)
             samesite="None",
+            path="/",
+            max_age=3600,
         )
 
         # ✅ Refresh token (long-lived)
@@ -386,6 +403,8 @@ class LoginAPIViewV2(APIView):
             httponly=True,
             secure=True,   # True in prod (HTTPS)
             samesite="None",
+            path="/",
+            max_age=604800,
         )
 
         return response
