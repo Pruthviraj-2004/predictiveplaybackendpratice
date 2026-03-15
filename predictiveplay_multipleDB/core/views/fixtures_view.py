@@ -161,6 +161,8 @@ class FixturesAPIViewV2(APIView):
                     "match_display_id": match.display_match_id,
                     "match_date": match.match_date,
                     "match_time": match.match_time,
+                    "location": match.location,
+                    "stadium": match.stadium,
                     "status_id": match.status_id,
                     "is_active": match.is_active,
                     "team1": {
@@ -175,7 +177,8 @@ class FixturesAPIViewV2(APIView):
                         "team_short_name": match.team2.short_name,
                         "team_display_id": match.team2.display_team_id,
                     },
-}}
+                }
+            }
 
         data = {
             "company_display_id": token["company_display_id"],
