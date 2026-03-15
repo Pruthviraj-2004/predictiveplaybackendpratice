@@ -312,6 +312,7 @@ class MySubmissionsByEventAPIViewV2(APIView):
                 "points_runs": sub.points_runs,
                 "points_wickets": sub.points_wickets,
                 "total_points": sub.total_points,
+                "max_points": 11,  # Placeholder, can be dynamic based on scoring rules
 
                 # ---------- Flags ----------
                 "flag_winner": sub.flag_winner,
