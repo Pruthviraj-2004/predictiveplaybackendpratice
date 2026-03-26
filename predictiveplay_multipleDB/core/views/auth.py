@@ -421,6 +421,73 @@ from core.utils.company import get_company_db
 from core.utils.passwords import hash_password
 from core.accounts.tokens import CustomRefreshToken
 
+from core.models import LeaderboardUser
+
+
+def add_user_to_leaderboard(db_alias, leaderboard_id, user_id):
+    """
+    Adds a user to a leaderboard if not already present.
+    """
+
+    obj, created = LeaderboardUser.objects.using(db_alias).get_or_create(
+        leaderboard_id=leaderboard_id,
+        user_id=user_id,
+        defaults={"is_deleted": False},
+    )
+
+    # If record exists but was soft-deleted → reactivate
+    if not created and obj.is_deleted:
+        obj.is_deleted = False
+        obj.save(using=db_alias)
+
+    return {
+        "leaderboard_id": leaderboard_id,
+        "user_id": user_id,
+        "created": created,
+    }
+
+
+from core.models import Leaderboard
+
+
+def assign_user_to_default_leaderboards(company_display_id, user_id):
+    """
+    Fetch Global + Weekly leaderboards for a company
+    and add user to them.
+    """
+
+    db_alias = get_company_db(company_display_id)
+
+    if not db_alias:
+        return {"error": "Invalid company_display_id"}
+
+    # ✅ Fetch leaderboards
+    leaderboards = Leaderboard.objects.using(db_alias).filter(
+        company_display_id=company_display_id,
+        leaderboard_name__in=["Global", "Weekly"],
+    ).only("leaderboard_id", "leaderboard_name")
+
+    results = []
+
+    for lb in leaderboards:
+        res = add_user_to_leaderboard(
+            db_alias=db_alias,
+            leaderboard_id=lb.leaderboard_id,
+            user_id=user_id,
+        )
+
+        results.append({
+            "leaderboard_name": lb.leaderboard_name,
+            "leaderboard_id": str(lb.leaderboard_id),
+            "status": "added" if res["created"] else "already_exists",
+        })
+
+    return {
+        "status": "success",
+        "assigned_leaderboards": results
+    }
+
+
 
 class RegisterAPIViewV2(APIView):
     permission_classes = [AllowAny]
@@ -473,6 +540,12 @@ class RegisterAPIViewV2(APIView):
             password=hash_password(password),
             is_active=True,
             is_email_verified=False,
+        )
+
+        # ✅ Assign user to default leaderboards
+        assign_user_to_default_leaderboards(
+            company_display_id=company_display_id,
+            user_id=user.user_id,
         )
 
         # ✅ Mint JWT (same as login)
