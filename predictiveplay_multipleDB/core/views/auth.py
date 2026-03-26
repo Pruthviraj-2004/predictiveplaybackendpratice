@@ -408,3 +408,115 @@ class LoginAPIViewV2(APIView):
         )
 
         return response
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import AllowAny
+from django.utils import timezone
+
+from core.models import CompanyUser
+from core.utils.company import get_company_db
+from core.utils.passwords import hash_password
+from core.accounts.tokens import CustomRefreshToken
+
+
+class RegisterAPIViewV2(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        data = request.data
+
+        company_display_id = data.get("company_display_id")
+        username = data.get("username")
+        email = data.get("email")
+        password = data.get("password")
+        full_name = data.get("full_name")
+
+        # ✅ Validate input
+        if not all([company_display_id, username, email, password, full_name]):
+            return Response(
+                {"detail": "All fields are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # ✅ Get DB
+        db_alias = get_company_db(company_display_id)
+        if not db_alias:
+            return Response(
+                {"detail": "Invalid company ID"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # ✅ Check existing email
+        if CompanyUser.objects.using(db_alias).filter(email=email).exists():
+            return Response(
+                {"detail": "Email already exists"},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        # ✅ Check existing username
+        if CompanyUser.objects.using(db_alias).filter(username=username).exists():
+            return Response(
+                {"detail": "Username already exists"},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        # ✅ Create user
+        user = CompanyUser.objects.using(db_alias).create(
+            company_display_id=company_display_id,
+            username=username,
+            email=email,
+            full_name=full_name,
+            password=hash_password(password),
+            is_active=True,
+            is_email_verified=False,
+        )
+
+        # ✅ Mint JWT (same as login)
+        refresh = CustomRefreshToken.for_user(
+            user=user,
+            company_display_id=company_display_id,
+        )
+
+        # ✅ Store refresh token in DB
+        RefreshToken.objects.using(db_alias).create(
+            jti=refresh["jti"],
+            user_id=user.user_id,
+            company_display_id=company_display_id,
+            expires_at=timezone.now() + refresh.lifetime,
+        )
+
+        # ✅ Response
+        response = Response(
+            {
+                "message": "User registered successfully",
+                "company_display_id": company_display_id,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+        # ✅ Set cookies (same as login)
+        response.set_cookie(
+            key="access_token",
+            value=str(refresh.access_token),
+            httponly=True,
+            secure=True,  # True in prod (HTTPS)
+            samesite="None",
+            path="/",
+            max_age=3600,
+        )
+
+        response.set_cookie(
+            key="refresh_token",
+            value=str(refresh),
+            httponly=True,
+            secure=True,  # True in prod (HTTPS)
+            samesite="None",
+            path="/",
+            max_age=604800,
+        )
+
+        return response

@@ -7,6 +7,7 @@ from core.views.auth import (
     LoginAPIViewV1,
     HomeAPIView,
     LogoutAPIView,
+    RegisterAPIViewV2,
 )
 from core.views.fixtures_view import SelectEventViewV1, FixturesViewV1, FixturesAPIViewV2, SelectEventAPIViewV2
 from core.views.matches_views import ActiveMatchesAPIViewV2, MatchPredictionAPIViewV2, MatchPredictionViewV1
@@ -15,7 +16,6 @@ from core.views.user_submissions import MySubmissionsAPIViewV2, MySubmissionsByE
 from rest_framework_simplejwt.views import TokenRefreshView
 from core.views.token_refresh import CookieTokenRefreshView
 from core.views.leaderboard_views import LeaderboardBoardAPIViewV2, LeaderboardBoardPaginatedAPIViewV2, LeaderboardEventsAPIViewV2, UserLeaderboardsByEventAPIViewV2
-
 
 
 urlpatterns = [
@@ -28,7 +28,7 @@ urlpatterns = [
     path("v1/match/<uuid:match_id>/", MatchPredictionViewV1.as_view(), name="match_prediction"),
     path("v1/my-submissions/", MySubmissionsViewV1.as_view(), name="my_submissions"),
 
-
+    path("v2/register/", RegisterAPIViewV2.as_view(), name="register_v2"),
     path("v2/login/", LoginAPIViewV2.as_view(), name="login_v2"),
     path("v2/fixtures/events/", SelectEventAPIViewV2.as_view(), name="select_event_v2"),
     path("v2/fixtures/events/<uuid:event_id>/", FixturesAPIViewV2.as_view(), name="fixtures_v2"),
