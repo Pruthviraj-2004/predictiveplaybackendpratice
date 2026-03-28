@@ -1,12 +1,13 @@
 from django.contrib import admin
+from import_export.admin import ImportExportModelAdmin
+
+from core.resources import CricketPlayerResource
 from core.models.cricket_player import CricketPlayer
 
 
 @admin.register(CricketPlayer)
-class CricketPlayerAdmin(admin.ModelAdmin):
-    """
-    Admin configuration for CricketPlayer
-    """
+class CricketPlayerAdmin(ImportExportModelAdmin):
+    resource_class = CricketPlayerResource
 
     # ---------- LIST VIEW ----------
     list_display = (
@@ -16,6 +17,8 @@ class CricketPlayerAdmin(admin.ModelAdmin):
         "role",
         "is_active",
         "is_deleted",
+        "playing_status",
+        "playing11_status",
     )
 
     list_filter = (
@@ -66,6 +69,12 @@ class CricketPlayerAdmin(admin.ModelAdmin):
                 "bowling_style",
             )
         }),
+        # ("Playing Status", {
+        #     "fields": (
+        #         "playing_status",
+        #         "playing11_status",
+        #     )
+        # }),
         ("Status", {
             "fields": (
                 "is_active",

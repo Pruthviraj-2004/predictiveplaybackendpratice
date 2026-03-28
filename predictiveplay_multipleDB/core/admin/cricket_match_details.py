@@ -1,12 +1,11 @@
 from django.contrib import admin
 from core.models.cricket_match_details import CricketMatchDetails
-
+from import_export.admin import ImportExportModelAdmin
+from core.resources import CricketMatchDetailsResource
 
 @admin.register(CricketMatchDetails)
-class CricketMatchDetailsAdmin(admin.ModelAdmin):
-    """
-    Admin configuration for CricketMatchDetails
-    """
+class CricketMatchDetailsAdmin(ImportExportModelAdmin):
+    resource_class = CricketMatchDetailsResource
 
     # ---------- LIST PAGE ----------
 

@@ -1,9 +1,13 @@
 from django.contrib import admin
-from core.models import CricketTeam
+from import_export.admin import ImportExportModelAdmin
 
+from core.resources import CricketTeamResource
+from core.models.cricket_team import CricketTeam
 
 @admin.register(CricketTeam)
-class CricketTeamAdmin(admin.ModelAdmin):
+class CricketTeamAdmin(ImportExportModelAdmin):
+    resource_class = CricketTeamResource
+
     list_display = (
         "short_name",
         "team_name",

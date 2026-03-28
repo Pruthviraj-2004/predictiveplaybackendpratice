@@ -1,9 +1,14 @@
 from django.contrib import admin
+from import_export.admin import ImportExportModelAdmin
+
 from core.models.cricket_event import CricketEvent
+from core.resources import CricketEventResource
 
 
 @admin.register(CricketEvent)
-class CricketEventAdmin(admin.ModelAdmin):
+class CricketEventAdmin(ImportExportModelAdmin):
+    resource_class = CricketEventResource
+
     list_display = (
         "display_event_id",
         "event_name",
@@ -23,6 +28,7 @@ class CricketEventAdmin(admin.ModelAdmin):
     search_fields = (
         "event_name",
         "short_name",
+        "display_event_id",
     )
 
     ordering = ("-start_date",)

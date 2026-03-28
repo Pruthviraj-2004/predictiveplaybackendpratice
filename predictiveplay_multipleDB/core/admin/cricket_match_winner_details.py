@@ -1,12 +1,12 @@
 from django.contrib import admin
-from core.models.cricket_match_winner_details import CricketMatchWinnerDetails
+from import_export.admin import ImportExportModelAdmin
 
+from core.models.cricket_match_winner_details import CricketMatchWinnerDetails
+from core.resources import CricketMatchWinnerDetailsResource
 
 @admin.register(CricketMatchWinnerDetails)
-class CricketMatchWinnerDetailsAdmin(admin.ModelAdmin):
-    """
-    Admin configuration for CricketMatchWinnerDetails
-    """
+class CricketMatchWinnerDetailsAdmin(ImportExportModelAdmin):
+    resource_class = CricketMatchWinnerDetailsResource
 
     # ---------- LIST VIEW ----------
     list_display = (
@@ -71,7 +71,4 @@ class CricketMatchWinnerDetailsAdmin(admin.ModelAdmin):
 
     # ---------- SAFETY ----------
     def has_delete_permission(self, request, obj=None):
-        """
-        Prevent accidental deletion of match results.
-        """
-    
+        return False
