@@ -271,7 +271,7 @@ class MatchPredictionAPIViewV2(APIView):
                 {"detail": "Match not found"},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        
+
         from core.utils.time_utils import is_prediction_closed
 
         if is_prediction_closed(match):
@@ -292,7 +292,7 @@ class MatchPredictionAPIViewV2(APIView):
                 {"detail": "All prediction fields are required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         # ---------- CONVERT STRING IDs TO UUID ----------
         try:
             winning_team_id = uuid.UUID(winning_team_id)
@@ -304,7 +304,7 @@ class MatchPredictionAPIViewV2(APIView):
                 {"detail": "Invalid UUID format in submission"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         # ---------- VALIDATE TEAM ----------
         valid_team_ids = {match.team1.team_id, match.team2.team_id}
 
@@ -341,7 +341,7 @@ class MatchPredictionAPIViewV2(APIView):
                 {"detail": "Most Wickets player does not belong to this match teams"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         # ---------- SAVE / UPDATE (company DB) ----------
         UserSubmission.objects.using(db_alias).update_or_create(
             user_id=user_id,
@@ -394,8 +394,6 @@ class ActiveMatchesAPIViewV2(APIView):
                     CricketMatchDetails.STATUS_LIVE,
                 ],
                 event__status=CricketEvent.STATUS_ACTIVE,
-                event__is_active=True,
-                event__is_deleted=False,
             )
             .order_by("event__display_event_id", "match_date", "match_time")
         )
