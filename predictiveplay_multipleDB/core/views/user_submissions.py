@@ -264,10 +264,10 @@ class MySubmissionsByEventAPIViewV2(APIView):
             "player_of_match_1",
             "most_runs_player_1",
             "most_wickets_player_1"
-        ).filter(match_id__in=match_ids)
+        ).filter(match__match_id__in=match_ids)
 
         winner_details = {
-            w.match_id: w for w in winner_details_qs
+            w.match.match_id: w for w in winner_details_qs
         }
 
         # ---------- Build response ----------
