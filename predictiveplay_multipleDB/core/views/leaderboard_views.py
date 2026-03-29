@@ -191,6 +191,7 @@ class LeaderboardBoardAPIViewV2(APIView):
         ).values("leaderboard_user_id", "user_id")
 
         current_user_id = uuid.UUID(token["user_id"])
+        current_username = users.get(current_user_id, "Unknown")
 
         current_leaderboard_user_id = None
         current_user_rank = None
@@ -309,6 +310,7 @@ class LeaderboardBoardAPIViewV2(APIView):
                 "match_number": latest_match,
                 "user_count": user_count,
                 "current_user_rank": current_user_rank,
+                "current_username": current_username,
                 "rows": rows,
             },
             status=status.HTTP_200_OK,
