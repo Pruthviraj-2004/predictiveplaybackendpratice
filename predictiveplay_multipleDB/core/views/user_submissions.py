@@ -354,7 +354,7 @@ class MySubmissionsByEventAPIViewV2(APIView):
             status_id__in=[1, 2],
             is_active=True,
             is_deleted=False
-        ).order_by("match_date", "match_time")
+        ).order_by("match_date", "match_time")[:9]
 
         upcoming_matches_data = []
 
