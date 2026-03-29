@@ -313,10 +313,10 @@ class LoginAPIViewV2(APIView):
 
     def post(self, request):
         company_display_id = request.data.get("company_display_id")
-        email = request.data.get("email")
+        username = request.data.get("username")
         password = request.data.get("password")
 
-        if not all([company_display_id, email, password]):
+        if not all([company_display_id, username, password]):
             return Response(
                 {"detail": "All fields are required"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -341,7 +341,7 @@ class LoginAPIViewV2(APIView):
                     "company_display_id",
                 )
                 .get(
-                    email=email,
+                    username=username,
                     is_deleted=False,
                     company_display_id=company_display_id,
                 )
@@ -498,12 +498,11 @@ class RegisterAPIViewV2(APIView):
 
         company_display_id = data.get("company_display_id")
         username = data.get("username")
-        email = data.get("email")
         password = data.get("password")
         full_name = data.get("full_name")
 
         # ✅ Validate input
-        if not all([company_display_id, username, email, password, full_name]):
+        if not all([company_display_id, username, password, full_name]):
             return Response(
                 {"detail": "All fields are required"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -517,13 +516,6 @@ class RegisterAPIViewV2(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # ✅ Check existing email
-        if CompanyUser.objects.using(db_alias).filter(email=email).exists():
-            return Response(
-                {"detail": "Email already exists"},
-                status=status.HTTP_409_CONFLICT,
-            )
-
         # ✅ Check existing username
         if CompanyUser.objects.using(db_alias).filter(username=username).exists():
             return Response(
@@ -535,11 +527,9 @@ class RegisterAPIViewV2(APIView):
         user = CompanyUser.objects.using(db_alias).create(
             company_display_id=company_display_id,
             username=username,
-            email=email,
             full_name=full_name,
             password=hash_password(password),
             is_active=True,
-            is_email_verified=False,
         )
 
         # ✅ Assign user to default leaderboards
