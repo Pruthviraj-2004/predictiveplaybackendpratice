@@ -158,163 +158,163 @@ from core.models.leaderboard_user import LeaderboardUser
 from core.models.final_leaderboard_points import FinalLeaderboardPoints
 from core.models.company_user import CompanyUser
 
-class LeaderboardBoardAPIViewV2(APIView):
-    authentication_classes = [CookieJWTAuthentication]
-    permission_classes = [HasValidJWT]
+# class LeaderboardBoardAPIViewV2(APIView):
+#     authentication_classes = [CookieJWTAuthentication]
+#     permission_classes = [HasValidJWT]
 
-    def get(self, request, leaderboard_id):
+#     def get(self, request, leaderboard_id):
 
-        token = request.auth
-        company_display_id = token["company_display_id"]
+#         token = request.auth
+#         company_display_id = token["company_display_id"]
 
-        db_alias = get_company_db(company_display_id)
+#         db_alias = get_company_db(company_display_id)
 
-        if not db_alias:
-            return Response({"rows": []}, status=status.HTTP_200_OK)
+#         if not db_alias:
+#             return Response({"rows": []}, status=status.HTTP_200_OK)
 
-        # ---------- Leaderboard ----------
-        try:
-            leaderboard = Leaderboard.objects.using(db_alias).get(
-                leaderboard_id=leaderboard_id,
-                company_display_id=company_display_id
-            )
-        except Leaderboard.DoesNotExist:
-            return Response(
-                {"detail": "Leaderboard not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+#         # ---------- Leaderboard ----------
+#         try:
+#             leaderboard = Leaderboard.objects.using(db_alias).get(
+#                 leaderboard_id=leaderboard_id,
+#                 company_display_id=company_display_id
+#             )
+#         except Leaderboard.DoesNotExist:
+#             return Response(
+#                 {"detail": "Leaderboard not found"},
+#                 status=status.HTTP_404_NOT_FOUND,
+#             )
 
-        # ---------- Leaderboard users ----------
-        leaderboard_users = LeaderboardUser.objects.using(db_alias).filter(
-            leaderboard_id=leaderboard_id,
-            is_deleted=False
-        ).values("leaderboard_user_id", "user_id")
+#         # ---------- Leaderboard users ----------
+#         leaderboard_users = LeaderboardUser.objects.using(db_alias).filter(
+#             leaderboard_id=leaderboard_id,
+#             is_deleted=False
+#         ).values("leaderboard_user_id", "user_id")
 
-        current_user_id = uuid.UUID(token["user_id"])
-        current_username = users.get(current_user_id, "Unknown")
+#         current_user_id = uuid.UUID(token["user_id"])
+#         current_username = users.get(current_user_id, "Unknown")
 
-        current_leaderboard_user_id = None
-        current_user_rank = None
+#         current_leaderboard_user_id = None
+#         current_user_rank = None
 
-        for u in leaderboard_users:
-            if u["user_id"] == current_user_id:
-                current_leaderboard_user_id = u["leaderboard_user_id"]
-                break
+#         for u in leaderboard_users:
+#             if u["user_id"] == current_user_id:
+#                 current_leaderboard_user_id = u["leaderboard_user_id"]
+#                 break
 
-        user_count = len(leaderboard_users)
+#         user_count = len(leaderboard_users)
 
-        if user_count == 0:
-            return Response(
-                {
-                    "leaderboard_id": leaderboard_id,
-                    "user_count": 0,
-                    "rows": []
-                },
-                status=status.HTTP_200_OK,
-            )
+#         if user_count == 0:
+#             return Response(
+#                 {
+#                     "leaderboard_id": leaderboard_id,
+#                     "user_count": 0,
+#                     "rows": []
+#                 },
+#                 status=status.HTTP_200_OK,
+#             )
 
-        leaderboard_user_ids = [u["leaderboard_user_id"] for u in leaderboard_users]
+#         leaderboard_user_ids = [u["leaderboard_user_id"] for u in leaderboard_users]
 
-        leaderboard_user_to_user = {
-            u["leaderboard_user_id"]: u["user_id"]
-            for u in leaderboard_users
-        }
+#         leaderboard_user_to_user = {
+#             u["leaderboard_user_id"]: u["user_id"]
+#             for u in leaderboard_users
+#         }
 
-        user_ids = list(leaderboard_user_to_user.values())
+#         user_ids = list(leaderboard_user_to_user.values())
 
-        # ---------- Fetch usernames ----------
-        users = {
-            u.user_id: u.username
-            for u in CompanyUser.objects.using(db_alias)
-            .filter(user_id__in=user_ids)
-            .only("user_id", "username")
-        }
+#         # ---------- Fetch usernames ----------
+#         users = {
+#             u.user_id: u.username
+#             for u in CompanyUser.objects.using(db_alias)
+#             .filter(user_id__in=user_ids)
+#             .only("user_id", "username")
+#         }
 
-        # ---------- Latest match ----------
-        latest_match = (
-            FinalLeaderboardPoints.objects.using(db_alias)
-            .filter(leaderboard_user_id__in=leaderboard_user_ids)
-            .order_by("-match_number")
-            .values_list("match_number", flat=True)
-            .first()
-        )
+#         # ---------- Latest match ----------
+#         latest_match = (
+#             FinalLeaderboardPoints.objects.using(db_alias)
+#             .filter(leaderboard_user_id__in=leaderboard_user_ids)
+#             .order_by("-match_number")
+#             .values_list("match_number", flat=True)
+#             .first()
+#         )
 
-        if not latest_match:
-            return Response(
-                {
-                    "leaderboard_id": leaderboard.leaderboard_id,
-                    "leaderboard_name": leaderboard.leaderboard_name,
-                    "user_count": user_count,
-                    "rows": []
-                },
-                status=status.HTTP_200_OK
-            )
+#         if not latest_match:
+#             return Response(
+#                 {
+#                     "leaderboard_id": leaderboard.leaderboard_id,
+#                     "leaderboard_name": leaderboard.leaderboard_name,
+#                     "user_count": user_count,
+#                     "rows": []
+#                 },
+#                 status=status.HTTP_200_OK
+#             )
 
-        # ---------- Fetch leaderboard ----------
-        leaderboard_rows = (
-            FinalLeaderboardPoints.objects.using(db_alias)
-            .filter(
-                leaderboard_user_id__in=leaderboard_user_ids,
-                match_number=latest_match
-            )
-            .order_by("rank")
-            .only(
-                "leaderboard_user_id",
-                "points1",
-                "points2",
-                "rank",
-                "previous_rank"
-            )
-        )
+#         # ---------- Fetch leaderboard ----------
+#         leaderboard_rows = (
+#             FinalLeaderboardPoints.objects.using(db_alias)
+#             .filter(
+#                 leaderboard_user_id__in=leaderboard_user_ids,
+#                 match_number=latest_match
+#             )
+#             .order_by("rank")
+#             .only(
+#                 "leaderboard_user_id",
+#                 "points1",
+#                 "points2",
+#                 "rank",
+#                 "previous_rank"
+#             )
+#         )
 
-        current_user_rank = FinalLeaderboardPoints.objects.using(db_alias).filter(
-            leaderboard_user_id=current_leaderboard_user_id,
-            match_number=latest_match
-        ).values_list("rank", flat=True).first()
+#         current_user_rank = FinalLeaderboardPoints.objects.using(db_alias).filter(
+#             leaderboard_user_id=current_leaderboard_user_id,
+#             match_number=latest_match
+#         ).values_list("rank", flat=True).first()
 
-        rows = []
+#         rows = []
 
-        for fp in leaderboard_rows:
+#         for fp in leaderboard_rows:
 
-            lb_user_id = fp.leaderboard_user_id
-            user_id = leaderboard_user_to_user.get(lb_user_id)
+#             lb_user_id = fp.leaderboard_user_id
+#             user_id = leaderboard_user_to_user.get(lb_user_id)
 
-            curr_rank = fp.rank
-            prev_rank = fp.previous_rank
-            total = fp.points1 + fp.points2
+#             curr_rank = fp.rank
+#             prev_rank = fp.previous_rank
+#             total = fp.points1 + fp.points2
 
-            # Compute delta
-            if prev_rank:
-                delta = prev_rank - curr_rank
-                delta_position = 1 if delta > 0 else 2 if delta < 0 else 0
-                delta_rank = abs(delta)
-            else:
-                delta_position = 0
-                delta_rank = 0
+#             # Compute delta
+#             if prev_rank:
+#                 delta = prev_rank - curr_rank
+#                 delta_position = 1 if delta > 0 else 2 if delta < 0 else 0
+#                 delta_rank = abs(delta)
+#             else:
+#                 delta_position = 0
+#                 delta_rank = 0
 
-            rows.append({
-                "username": users.get(user_id, "Unknown"),
-                "points1": fp.points1,
-                "points2": fp.points2,
-                "total_points": total,
-                "rank": curr_rank,
-                "delta_position": delta_position,
-                "delta_rank": delta_rank,
-            })
+#             rows.append({
+#                 "username": users.get(user_id, "Unknown"),
+#                 "points1": fp.points1,
+#                 "points2": fp.points2,
+#                 "total_points": total,
+#                 "rank": curr_rank,
+#                 "delta_position": delta_position,
+#                 "delta_rank": delta_rank,
+#             })
 
-        return Response(
-            {
-                "leaderboard_id": leaderboard.leaderboard_id,
-                "leaderboard_name": leaderboard.leaderboard_name,
-                "event_id": leaderboard.event_id,
-                "match_number": latest_match,
-                "user_count": user_count,
-                "current_user_rank": current_user_rank,
-                "current_username": current_username,
-                "rows": rows,
-            },
-            status=status.HTTP_200_OK,
-        )
+#         return Response(
+#             {
+#                 "leaderboard_id": leaderboard.leaderboard_id,
+#                 "leaderboard_name": leaderboard.leaderboard_name,
+#                 "event_id": leaderboard.event_id,
+#                 "match_number": latest_match,
+#                 "user_count": user_count,
+#                 "current_user_rank": current_user_rank,
+#                 "current_username": current_username,
+#                 "rows": rows,
+#             },
+#             status=status.HTTP_200_OK,
+#         )
     
 
 from math import ceil
@@ -491,3 +491,218 @@ class LeaderboardBoardPaginatedAPIViewV2(APIView):
             status=status.HTTP_200_OK,
         )
 
+import uuid
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+class LeaderboardBoardAPIViewV2(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [HasValidJWT]
+
+    def get(self, request, leaderboard_id):
+
+        token = request.auth
+        company_display_id = token["company_display_id"]
+
+        db_alias = get_company_db(company_display_id)
+
+        if not db_alias:
+            return Response({"rows": []}, status=status.HTTP_200_OK)
+
+        # ---------- Leaderboard ----------
+        try:
+            leaderboard = Leaderboard.objects.using(db_alias).get(
+                leaderboard_id=leaderboard_id,
+                company_display_id=company_display_id
+            )
+        except Leaderboard.DoesNotExist:
+            return Response(
+                {"detail": "Leaderboard not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # ---------- Leaderboard users ----------
+        leaderboard_users = list(
+            LeaderboardUser.objects.using(db_alias)
+            .filter(leaderboard_id=leaderboard_id, is_deleted=False)
+            .values("leaderboard_user_id", "user_id")
+        )
+
+        current_user_id = uuid.UUID(token["user_id"])
+
+        current_leaderboard_user_id = None
+
+        for u in leaderboard_users:
+            if u["user_id"] == current_user_id:
+                current_leaderboard_user_id = u["leaderboard_user_id"]
+                break
+
+        user_count = len(leaderboard_users)
+
+        if user_count == 0:
+            return Response(
+                {
+                    "leaderboard_id": leaderboard_id,
+                    "user_count": 0,
+                    "rows": []
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        leaderboard_user_ids = [u["leaderboard_user_id"] for u in leaderboard_users]
+
+        leaderboard_user_to_user = {
+            u["leaderboard_user_id"]: u["user_id"]
+            for u in leaderboard_users
+        }
+
+        user_ids = list(leaderboard_user_to_user.values())
+
+        # ---------- Fetch usernames ----------
+        users = {
+            u.user_id: u.username
+            for u in CompanyUser.objects.using(db_alias)
+            .filter(user_id__in=user_ids)
+            .only("user_id", "username")
+        }
+
+        # ✅ CURRENT USERNAME FIX
+        current_username = users.get(current_user_id)
+
+        if not current_username:
+            current_username = CompanyUser.objects.using(db_alias).filter(
+                user_id=current_user_id
+            ).values_list("username", flat=True).first() or "Unknown"
+
+        # ---------- Latest match ----------
+        latest_match = (
+            FinalLeaderboardPoints.objects.using(db_alias)
+            .filter(leaderboard_user_id__in=leaderboard_user_ids)
+            .order_by("-match_number")
+            .values_list("match_number", flat=True)
+            .first()
+        )
+
+        # ---------- DEFAULT LEADERBOARD (NO MATCH DATA) ----------
+        if not latest_match:
+            rows = []
+
+            for lb_user_id in leaderboard_user_ids:
+                user_id = leaderboard_user_to_user.get(lb_user_id)
+
+                rows.append({
+                    "username": users.get(user_id, "Unknown"),
+                    "points1": 0,
+                    "points2": 0,
+                    "total_points": 0,
+                    "rank": None,
+                    "delta_position": 0,
+                    "delta_rank": 0,
+                })
+
+            return Response(
+                {
+                    "leaderboard_id": leaderboard.leaderboard_id,
+                    "leaderboard_name": leaderboard.leaderboard_name,
+                    "event_id": leaderboard.event_id,
+                    "match_number": None,
+                    "user_count": user_count,
+                    "current_user_rank": None,
+                    "current_username": current_username,
+                    "rows": rows,
+                },
+                status=status.HTTP_200_OK
+            )
+
+        # ---------- Fetch leaderboard ----------
+        leaderboard_rows = (
+            FinalLeaderboardPoints.objects.using(db_alias)
+            .filter(
+                leaderboard_user_id__in=leaderboard_user_ids,
+                match_number=latest_match
+            )
+            .only(
+                "leaderboard_user_id",
+                "points1",
+                "points2",
+                "rank",
+                "previous_rank"
+            )
+        )
+
+        # ---------- Current user rank ----------
+        current_user_rank = FinalLeaderboardPoints.objects.using(db_alias).filter(
+            leaderboard_user_id=current_leaderboard_user_id,
+            match_number=latest_match
+        ).values_list("rank", flat=True).first()
+
+        # ---------- Map points ----------
+        points_map = {
+            fp.leaderboard_user_id: fp
+            for fp in leaderboard_rows
+        }
+
+        rows = []
+
+        # ---------- Build rows (INCLUDING NEW USERS) ----------
+        for lb_user_id in leaderboard_user_ids:
+
+            user_id = leaderboard_user_to_user.get(lb_user_id)
+            fp = points_map.get(lb_user_id)
+
+            if fp:
+                curr_rank = fp.rank
+                prev_rank = fp.previous_rank
+                points1 = fp.points1
+                points2 = fp.points2
+                total = points1 + points2
+            else:
+                curr_rank = None
+                prev_rank = None
+                points1 = 0
+                points2 = 0
+                total = 0
+
+            # ---------- Delta ----------
+            if prev_rank and curr_rank:
+                delta = prev_rank - curr_rank
+                delta_position = 1 if delta > 0 else 2 if delta < 0 else 0
+                delta_rank = abs(delta)
+            else:
+                delta_position = 0
+                delta_rank = 0
+
+            rows.append({
+                "username": users.get(user_id, "Unknown"),
+                "points1": points1,
+                "points2": points2,
+                "total_points": total,
+                "rank": curr_rank,
+                "delta_position": delta_position,
+                "delta_rank": delta_rank,
+            })
+
+        # ---------- Sort + Re-rank ----------
+        rows = sorted(
+            rows,
+            key=lambda x: (-x["total_points"], x["username"])
+        )
+
+        for i, row in enumerate(rows, start=1):
+            row["rank"] = i
+
+        # ---------- Final Response ----------
+        return Response(
+            {
+                "leaderboard_id": leaderboard.leaderboard_id,
+                "leaderboard_name": leaderboard.leaderboard_name,
+                "event_id": leaderboard.event_id,
+                "match_number": latest_match,
+                "user_count": user_count,
+                "current_user_rank": current_user_rank,
+                "current_username": current_username,
+                "rows": rows,
+            },
+            status=status.HTTP_200_OK,
+        )
