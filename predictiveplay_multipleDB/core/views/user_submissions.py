@@ -258,14 +258,16 @@ class MySubmissionsByEventAPIViewV2(APIView):
             for p in CricketPlayer.objects.filter(player_id__in=player_ids)
         }
 
+        winner_details_qs = CricketMatchWinnerDetails.objects.select_related(
+        "winner_team"
+        ).prefetch_related(
+            "player_of_match_1",
+            "most_runs_player_1",
+            "most_wickets_player_1"
+        ).filter(match_id__in=match_ids)
+
         winner_details = {
-            w.match_id: w
-            for w in CricketMatchWinnerDetails.objects.select_related(
-                "winner_team",
-                "player_of_match",
-                "most_runs_player",
-                "most_wickets_taker"
-            ).filter(match_id__in=match_ids)
+            w.match_id: w for w in winner_details_qs
         }
 
         # ---------- Build response ----------
@@ -295,10 +297,18 @@ class MySubmissionsByEventAPIViewV2(APIView):
                 "team2": match.team2.team_name,
 
                 # ---------- Actual Results ----------
-                "actual_winner_team": winner.winner_team.team_name if winner and winner.winner_team else None,
-                "actual_player_of_match": winner.player_of_match.player_name if winner and winner.player_of_match else None,
-                "actual_most_runs_player": winner.most_runs_player.player_name if winner and winner.most_runs_player else None,
-                "actual_most_wickets_taker": winner.most_wickets_taker.player_name if winner and winner.most_wickets_taker else None,
+                "actual_player_of_match": (
+                    [p.player_name for p in winner.player_of_match_1.all()]
+                    if winner else []
+                ),
+                "actual_most_runs_player": (
+                    [p.player_name for p in winner.most_runs_player_1.all()]
+                    if winner else []
+                ),
+                "actual_most_wickets_taker": (
+                    [p.player_name for p in winner.most_wickets_player_1.all()]
+                    if winner else []
+                ),
 
                 # ---------- User Predictions ----------
                 "predicted_winner_team": teams.get(sub.predicted_winner_team_id),
