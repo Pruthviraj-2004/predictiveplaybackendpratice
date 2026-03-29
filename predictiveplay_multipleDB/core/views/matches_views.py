@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.utils import timezone
+from core.models.cricket_event import CricketEvent
 from rest_framework.views import APIView
 
 from core.authentication import CookieJWTAuthentication
@@ -392,6 +393,9 @@ class ActiveMatchesAPIViewV2(APIView):
                     CricketMatchDetails.STATUS_SCHEDULED,
                     CricketMatchDetails.STATUS_LIVE,
                 ],
+                event__status=CricketEvent.STATUS_ACTIVE,
+                event__is_active=True,
+                event__is_deleted=False,
             )
             .order_by("event__display_event_id", "match_date", "match_time")
         )
