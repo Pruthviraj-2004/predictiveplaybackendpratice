@@ -371,7 +371,7 @@ class MatchPredictionAPIViewV2(APIView):
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-
+from collections import defaultdict
 from core.models.cricket_match_details import CricketMatchDetails
 
 
@@ -393,39 +393,53 @@ class ActiveMatchesAPIViewV2(APIView):
                     CricketMatchDetails.STATUS_LIVE,
                 ],
             )
-            .order_by("match_date", "match_time")
+            .order_by("event__display_event_id", "match_date", "match_time")
         )
+
+        # ---------- GROUP BY EVENT ----------
+        event_match_map = defaultdict(list)
+
+        for match in matches:
+            event_id = match.event.event_id
+
+            # ✅ limit 3 matches per event
+            if len(event_match_map[event_id]) >= 3:
+                continue
+
+            event_match_map[event_id].append(match)
 
         data = []
 
-        for match in matches:
-            data.append({
-                "match_id": match.match_id,
-                "display_match_id": match.display_match_id,
-                "match_date": match.match_date,
-                "match_time": match.match_time,
-                "location": match.location,
-                "stadium": match.stadium,
-                "status_id": match.status_id,
-                "status_label": match.get_status_id_display(),
-                "allow_predictions": match.allow_predictions,
-                "event": {
-                    "event_id": match.event.event_id,
-                    "event_name": match.event.event_name,
-                },
-                "team1": {
-                    "team_id": match.team1.team_id,
-                    "team_display_id": match.team1.display_team_id,
-                    "team_name": match.team1.team_name,
-                    "short_name": match.team1.short_name,
-                },
-                "team2": {
-                    "team_id": match.team2.team_id,
-                    "team_display_id": match.team2.display_team_id,
-                    "team_name": match.team2.team_name,
-                    "short_name": match.team2.short_name,
-                },
-            })
+        for event_id, event_matches in event_match_map.items():
+            for match in event_matches:
+                data.append({
+                    "match_id": match.match_id,
+                    "display_match_id": match.display_match_id,
+                    "match_date": match.match_date,
+                    "match_time": match.match_time,
+                    "location": match.location,
+                    "stadium": match.stadium,
+                    "status_id": match.status_id,
+                    "status_label": match.get_status_id_display(),
+                    "allow_predictions": match.allow_predictions,
+                    "event": {
+                        "event_id": match.event.event_id,
+                        "display_event_id": match.event.display_event_id,
+                        "event_name": match.event.event_name,
+                    },
+                    "team1": {
+                        "team_id": match.team1.team_id,
+                        "team_display_id": match.team1.display_team_id,
+                        "team_name": match.team1.team_name,
+                        "short_name": match.team1.short_name,
+                    },
+                    "team2": {
+                        "team_id": match.team2.team_id,
+                        "team_display_id": match.team2.display_team_id,
+                        "team_name": match.team2.team_name,
+                        "short_name": match.team2.short_name,
+                    },
+                })
 
         return Response(
             {"matches": data},
