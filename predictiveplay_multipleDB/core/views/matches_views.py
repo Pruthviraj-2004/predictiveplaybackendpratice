@@ -271,7 +271,7 @@ class MatchPredictionAPIViewV2(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         
-        from utils.time_utils import is_prediction_closed
+        from core.utils.time_utils import is_prediction_closed
 
         if is_prediction_closed(match):
             return Response(
