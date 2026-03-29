@@ -65,6 +65,15 @@ class CricketPlayer(models.Model):
         null=True
     )
 
+    playing_status = models.BooleanField(
+        default=True
+    )
+
+    playing11_status = models.BooleanField(
+        default=True
+    )
+
+
     is_active = models.BooleanField(default=True)
     is_deleted = models.BooleanField(default=False)
 

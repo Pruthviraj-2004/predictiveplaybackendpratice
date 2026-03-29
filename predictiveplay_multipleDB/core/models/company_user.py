@@ -23,19 +23,9 @@ class CompanyUser(models.Model):
         help_text="Company display ID this user belongs to"
     )
 
-    # -------- Login Fields --------
-    email = models.EmailField(
-        max_length=255,
-        unique=True
-    )
-
     username = models.CharField(
         max_length=150,
         unique=True
-    )
-
-    is_email_verified = models.BooleanField(
-        default=False
     )
 
     password = models.CharField(
@@ -56,6 +46,10 @@ class CompanyUser(models.Model):
         default=False
     )
 
+    display_user = models.BooleanField(
+        default=False
+    )
+
     # -------- Auditing --------
     last_login_at = models.DateTimeField(
         null=True,
@@ -73,7 +67,6 @@ class CompanyUser(models.Model):
     class Meta:
         db_table = "company_users"
         indexes = [
-            models.Index(fields=["company_display_id", "email"]),
             models.Index(fields=["company_display_id", "username"]),
         ]
 

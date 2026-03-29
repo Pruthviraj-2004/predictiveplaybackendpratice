@@ -18,6 +18,11 @@ class LeaderboardPoints(models.Model):
         blank=True
     )
 
+    match_number = models.IntegerField(
+        null=True,
+        blank=True
+    )
+
     points1 = models.IntegerField(
         default=0
     )

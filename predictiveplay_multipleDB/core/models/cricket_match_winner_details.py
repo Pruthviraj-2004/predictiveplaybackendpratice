@@ -33,30 +33,23 @@ class CricketMatchWinnerDetails(models.Model):
         related_name="won_matches"
     )
 
-    player_of_match = models.ForeignKey(
+    player_of_match_1 = models.ManyToManyField(
         CricketPlayer,
-        on_delete=models.CASCADE,
-        null=True,
         blank=True,
-        related_name="player_of_match_awards"
+        related_name="player_of_match_awards_m2m"
     )
 
-    most_runs_player = models.ForeignKey(
+    most_runs_player_1 = models.ManyToManyField(
         CricketPlayer,
-        on_delete=models.CASCADE,
-        null=True,
         blank=True,
-        related_name="most_runs_awards"
+        related_name="most_runs_awards_m2m"
     )
 
-    most_wickets_taker = models.ForeignKey(
+    most_wickets_player_1 = models.ManyToManyField(
         CricketPlayer,
-        on_delete=models.CASCADE,
-        null=True,
         blank=True,
-        related_name="most_wickets_awards"
+        related_name="most_wickets_awards_m2m"
     )
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

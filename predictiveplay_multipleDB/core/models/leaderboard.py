@@ -23,10 +23,10 @@ class Leaderboard(models.Model):
     )
 
     # ---------- POINT RULES ----------
-    leaderboard_points_winner_team = models.IntegerField(default=4)
-    leaderboard_points_mom = models.IntegerField(default=3)
-    leaderboard_points_runs = models.IntegerField(default=3)
-    leaderboard_points_wickets = models.IntegerField(default=3)
+    leaderboard_points_winner_team = models.IntegerField(default=3)
+    leaderboard_points_mom = models.IntegerField(default=4)
+    leaderboard_points_runs = models.IntegerField(default=2)
+    leaderboard_points_wickets = models.IntegerField(default=2)
 
     # ---------- METADATA ----------
     created_by_user_id = models.UUIDField(

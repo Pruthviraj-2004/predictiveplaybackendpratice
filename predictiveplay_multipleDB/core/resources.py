@@ -66,15 +66,14 @@ class CricketPlayerResource(resources.ModelResource):
     team = fields.Field(
         column_name="team",
         attribute="team",
-        widget=ForeignKeyWidget(CricketTeam, "team_id")
+        widget=ForeignKeyWidget(CricketTeam, "team_id")  # UUID FK ✅
     )
 
     class Meta:
         model = CricketPlayer
 
-        # ✅ INCLUDE UUID
         fields = (
-            "player_id",
+            "player_id",  # ✅ REQUIRED
             "display_player_id",
             "player_name",
             "short_name",
@@ -83,31 +82,30 @@ class CricketPlayerResource(resources.ModelResource):
             "team",
             "batting_style",
             "bowling_style",
-            # "playing_status",
+                        # "playing_status",
             # "playing11_status",
             "is_active",
             "is_deleted",
         )
 
-        # ✅ business key for import
-        import_id_fields = ("display_player_id",)
+        # ✅ SWITCH TO UUID IMPORT
+        import_id_fields = ("player_id",)
 
         export_order = fields
 
         skip_unchanged = True
         report_skipped = True
 
-    # ✅ Protect UUID
+    # ✅ DO NOT REMOVE UUID
     def before_import_row(self, row, **kwargs):
-        row.pop("player_id", None)
 
-        if not row.get("display_player_id"):
-            raise ValueError("display_player_id is required")
+        if not row.get("player_id"):
+            raise ValueError("player_id is required for UUID import")
 
         if not row.get("player_name"):
             raise ValueError("player_name is required")
 
-    # ✅ Optional UUID fallback
+    # ✅ UUID MATCHING
     def get_instance(self, instance_loader, row):
         player_id = row.get("player_id")
 
@@ -115,9 +113,9 @@ class CricketPlayerResource(resources.ModelResource):
             try:
                 return CricketPlayer.objects.get(player_id=player_id)
             except CricketPlayer.DoesNotExist:
-                pass
+                return None  # create new
 
-        return super().get_instance(instance_loader, row)
+        return None
 
 
 class CricketTeamResource(resources.ModelResource):
@@ -133,9 +131,8 @@ class CricketTeamResource(resources.ModelResource):
     class Meta:
         model = CricketTeam
 
-        # ✅ INCLUDE UUID
         fields = (
-            "team_id",
+            "team_id",   # ✅ REQUIRED for import
             "display_team_id",
             "team_name",
             "short_name",
@@ -146,25 +143,24 @@ class CricketTeamResource(resources.ModelResource):
             "is_featured",
         )
 
-        # ✅ business key
-        import_id_fields = ("display_team_id",)
+        # ✅ UUID-based import
+        import_id_fields = ("team_id",)
 
         export_order = fields
 
         skip_unchanged = True
         report_skipped = True
 
-    # ✅ Protect UUID
+    # ✅ VALIDATION (do NOT remove team_id)
     def before_import_row(self, row, **kwargs):
-        row.pop("team_id", None)
 
-        if not row.get("display_team_id"):
-            raise ValueError("display_team_id is required")
+        if not row.get("team_id"):
+            raise ValueError("team_id is required for UUID-based import")
 
         if not row.get("team_name"):
             raise ValueError("team_name is required")
 
-    # ✅ Optional UUID fallback
+    # ✅ ensure UUID matching works properly
     def get_instance(self, instance_loader, row):
         team_id = row.get("team_id")
 
@@ -172,39 +168,38 @@ class CricketTeamResource(resources.ModelResource):
             try:
                 return CricketTeam.objects.get(team_id=team_id)
             except CricketTeam.DoesNotExist:
-                pass
+                return None  # create new
 
-        return super().get_instance(instance_loader, row)
+        return None
 
 
 class CricketMatchDetailsResource(resources.ModelResource):
 
-    # ---------- FOREIGN KEYS ----------
+    # ---------- FOREIGN KEYS (UUID BASED) ----------
 
     event = fields.Field(
         column_name="event",
         attribute="event",
-        widget=ForeignKeyWidget(CricketEvent, "display_event_id")
+        widget=ForeignKeyWidget(CricketEvent, "display_event_id")  # OK to keep
     )
 
     team1 = fields.Field(
         column_name="team1",
         attribute="team1",
-        widget=ForeignKeyWidget(CricketTeam, "team_short_name")
+        widget=ForeignKeyWidget(CricketTeam, "team_id")  # ✅ UUID
     )
 
     team2 = fields.Field(
         column_name="team2",
         attribute="team2",
-        widget=ForeignKeyWidget(CricketTeam, "team_short_name")
+        widget=ForeignKeyWidget(CricketTeam, "team_id")  # ✅ UUID
     )
 
     class Meta:
         model = CricketMatchDetails
 
-        # ✅ INCLUDE UUID
         fields = (
-            "match_id",
+            "match_id",   # ✅ UUID (PRIMARY IMPORT KEY)
             "display_match_id",
             "event",
             "team1",
@@ -223,6 +218,7 @@ class CricketMatchDetailsResource(resources.ModelResource):
             "allow_predictions",
         )
 
+        # ✅ UUID-based import
         import_id_fields = ("match_id",)
 
         export_order = fields
@@ -230,15 +226,19 @@ class CricketMatchDetailsResource(resources.ModelResource):
         skip_unchanged = True
         report_skipped = True
 
-    # ✅ CRITICAL: protect UUID
+    # ✅ VALIDATION (DO NOT REMOVE UUID)
     def before_import_row(self, row, **kwargs):
-        # 🚫 Never allow UUID overwrite
-        row.pop("match_id", None)
 
-        if not row.get("display_match_id"):
-            raise ValueError("display_match_id is required")
+        if not row.get("match_id"):
+            raise ValueError("match_id is required")
 
-    # ✅ OPTIONAL: allow UUID fallback (advanced use)
+        if not row.get("team1"):
+            raise ValueError("team1 (team_id) is required")
+
+        if not row.get("team2"):
+            raise ValueError("team2 (team_id) is required")
+
+    # ✅ MATCH INSTANCE USING UUID
     def get_instance(self, instance_loader, row):
         match_id = row.get("match_id")
 
@@ -246,15 +246,87 @@ class CricketMatchDetailsResource(resources.ModelResource):
             try:
                 return CricketMatchDetails.objects.get(match_id=match_id)
             except CricketMatchDetails.DoesNotExist:
-                pass
+                return None  # create new
 
-        return super().get_instance(instance_loader, row)
+        return None
 
+# class CricketMatchWinnerDetailsResource(resources.ModelResource):
+
+#     # ---------- FOREIGN KEYS (UUID BASED) ----------
+
+#     event = fields.Field(
+#         column_name="event",
+#         attribute="event",
+#         widget=ForeignKeyWidget(CricketEvent, "display_event_id")  # OK
+#     )
+
+#     match = fields.Field(
+#         column_name="match",
+#         attribute="match",
+#         widget=ForeignKeyWidget(CricketMatchDetails, "match_id")  # ✅ UUID
+#     )
+
+#     winner_team = fields.Field(
+#         column_name="winner_team",
+#         attribute="winner_team",
+#         widget=ForeignKeyWidget(CricketTeam, "team_id")  # ✅ UUID
+#     )
+
+#     player_of_match = fields.Field(
+#         column_name="player_of_match",
+#         attribute="player_of_match",
+#         widget=ForeignKeyWidget(CricketPlayer, "player_id")  # ✅ UUID
+#     )
+
+#     most_runs_player = fields.Field(
+#         column_name="most_runs_player",
+#         attribute="most_runs_player",
+#         widget=ForeignKeyWidget(CricketPlayer, "player_id")  # ✅ UUID
+#     )
+
+#     most_wickets_taker = fields.Field(
+#         column_name="most_wickets_taker",
+#         attribute="most_wickets_taker",
+#         widget=ForeignKeyWidget(CricketPlayer, "player_id")  # ✅ UUID
+#     )
+
+#     class Meta:
+#         model = CricketMatchWinnerDetails
+
+#         fields = (
+#             "winner_id",   # ✅ UUID
+#             "event",
+#             "match",
+#             "winner_team",
+#             "player_of_match",
+#             "most_runs_player",
+#             "most_wickets_taker",
+#         )
+
+#         # ✅ PRIMARY KEY IMPORT
+#         import_id_fields = ("winner_id",)
+
+#         export_order = fields
+
+#         skip_unchanged = True
+#         report_skipped = True
+
+#     # ✅ VALIDATION
+#     def before_import_row(self, row, **kwargs):
+
+#         if not row.get("winner_id"):
+#             raise ValueError("winner_id is required")
+
+#         if not row.get("match"):
+#             raise ValueError("match_id is required")
+
+
+from import_export import resources, fields
+from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 
 class CricketMatchWinnerDetailsResource(resources.ModelResource):
 
     # ---------- FOREIGN KEYS ----------
-
     event = fields.Field(
         column_name="event",
         attribute="event",
@@ -264,72 +336,58 @@ class CricketMatchWinnerDetailsResource(resources.ModelResource):
     match = fields.Field(
         column_name="match",
         attribute="match",
-        widget=ForeignKeyWidget(CricketMatchDetails, "display_match_id")
+        widget=ForeignKeyWidget(CricketMatchDetails, "match_id")
     )
 
     winner_team = fields.Field(
         column_name="winner_team",
         attribute="winner_team",
-        widget=ForeignKeyWidget(CricketTeam, "team_short_name")
+        widget=ForeignKeyWidget(CricketTeam, "team_id")
     )
 
-    player_of_match = fields.Field(
+    # ---------- MANY TO MANY ----------
+    player_of_match_1 = fields.Field(
         column_name="player_of_match",
-        attribute="player_of_match",
-        widget=ForeignKeyWidget(CricketPlayer, "player_name")
+        attribute="player_of_match_1",
+        widget=ManyToManyWidget(CricketPlayer, field="player_id", separator=",")
     )
 
-    most_runs_player = fields.Field(
+    most_runs_player_1 = fields.Field(
         column_name="most_runs_player",
-        attribute="most_runs_player",
-        widget=ForeignKeyWidget(CricketPlayer, "player_name")
+        attribute="most_runs_player_1",
+        widget=ManyToManyWidget(CricketPlayer, field="player_id", separator=",")
     )
 
-    most_wickets_taker = fields.Field(
+    most_wickets_player_1 = fields.Field(
         column_name="most_wickets_taker",
-        attribute="most_wickets_taker",
-        widget=ForeignKeyWidget(CricketPlayer, "player_name")
+        attribute="most_wickets_player_1",
+        widget=ManyToManyWidget(CricketPlayer, field="player_id", separator=",")
     )
 
     class Meta:
         model = CricketMatchWinnerDetails
 
-        # ✅ INCLUDE UUID
         fields = (
             "winner_id",
             "event",
             "match",
             "winner_team",
-            "player_of_match",
-            "most_runs_player",
-            "most_wickets_taker",
-            "created_at",
-            "updated_at",
+            "player_of_match_1",
+            "most_runs_player_1",
+            "most_wickets_player_1",
         )
 
-        # ✅ Use match as unique mapping
-        import_id_fields = ("match",)
-
+        import_id_fields = ("winner_id",)
         export_order = fields
 
         skip_unchanged = True
         report_skipped = True
 
-    # ✅ Protect UUID from overwrite
+    # ---------- VALIDATION ----------
     def before_import_row(self, row, **kwargs):
-        row.pop("winner_id", None)
+
+        if not row.get("winner_id"):
+            raise ValueError("winner_id is required")
 
         if not row.get("match"):
-            raise ValueError("match is required")
-
-    # ✅ Optional UUID fallback (advanced)
-    def get_instance(self, instance_loader, row):
-        winner_id = row.get("winner_id")
-
-        if winner_id:
-            try:
-                return CricketMatchWinnerDetails.objects.get(winner_id=winner_id)
-            except CricketMatchWinnerDetails.DoesNotExist:
-                pass
-
-        return super().get_instance(instance_loader, row)
+            raise ValueError("match_id is required")

@@ -20,6 +20,10 @@ class LeaderboardUser(models.Model):
         help_text="CompanyUser UUID"
     )
 
+    display_user = models.BooleanField(
+        default=True
+    )
+
     created_on = models.DateTimeField(
         auto_now_add=True
     )
