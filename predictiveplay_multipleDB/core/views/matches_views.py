@@ -405,11 +405,11 @@ class ActiveMatchesAPIViewV2(APIView):
             event_id = match.event.event_id
 
             # ✅ limit 3 matches per event
-            if len(event_match_map[event_id]) >= 3:
+            if len(event_match_map[event_id]) >= 5:
                 continue
 
             event_match_map[event_id].append(match)
-
+    
         data = []
 
         for event_id, event_matches in event_match_map.items():
