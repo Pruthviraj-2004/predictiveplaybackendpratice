@@ -270,7 +270,16 @@ class MatchPredictionAPIViewV2(APIView):
                 {"detail": "Match not found"},
                 status=status.HTTP_404_NOT_FOUND,
             )
+        
+        from utils.time_utils import is_prediction_closed
 
+        if is_prediction_closed(match):
+            return Response(
+                {"detail": "Prediction time is over. Match already started."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # ---------- INPUT ----------
         winning_team_id = request.data.get("winning_team_id")
         pom_id = request.data.get("player_of_match_id")
         runs_id = request.data.get("most_runs_player_id")
