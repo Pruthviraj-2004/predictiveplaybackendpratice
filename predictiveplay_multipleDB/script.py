@@ -37,9 +37,11 @@ django.setup()
 # from core.models.leaderboard_user import LeaderboardUser
 
 # db = "company_w5ddym3d"
-
+# event_id = uuid.UUID("b68329a5-9e1b-4e1f-a239-488a3672b521")
+# company_display_id = "W5DDYM3D"
 # # get global leaderboard
-# leaderboard = Leaderboard.objects.using(db).get(leaderboard_name="Weekly")
+# global_leaderboard = Leaderboard.objects.using(db).get(leaderboard_name="Global",event_id=event_id,company_display_id=company_display_id)
+# weekly_leaderboard = Leaderboard.objects.using(db).get(leaderboard_name="Weekly",event_id=event_id,company_display_id=company_display_id)
 
 # # get all users
 # users = CompanyUser.objects.using(db).values_list("user_id", flat=True)
@@ -48,7 +50,11 @@ django.setup()
 
 # for user_id in users:
 #     obj, is_created = LeaderboardUser.objects.using(db).get_or_create(
-#         leaderboard_id=leaderboard.leaderboard_id,
+#         leaderboard_id=global_leaderboard.leaderboard_id,
+#         user_id=user_id
+#     )
+#     obj, is_created = LeaderboardUser.objects.using(db).get_or_create(
+#         leaderboard_id=weekly_leaderboard.leaderboard_id,
 #         user_id=user_id
 #     )
 #     if is_created:
@@ -630,8 +636,8 @@ django.setup()
 # matches = CricketMatchDetails.objects.filter(event_id=event_id)
 
 # # ✅ Fetch leaderboards
-# global_lb = Leaderboard.objects.using(DB).get(leaderboard_name="Global")
-# weekly_lb = Leaderboard.objects.using(DB).get(leaderboard_name="Weekly")
+# global_lb = Leaderboard.objects.using(DB).get(leaderboard_name="Global",event_id=event_id)
+# weekly_lb = Leaderboard.objects.using(DB).get(leaderboard_name="Weekly",event_id=event_id)
 
 # created = 0
 # skipped = 0
@@ -680,88 +686,88 @@ django.setup()
 
 # add final cumulative points for all users in the leaderboard for all matches in event
 
-from core.models.leaderboard_points import LeaderboardPoints
-from core.models.final_leaderboard_points import FinalLeaderboardPoints
+# from core.models.leaderboard_points import LeaderboardPoints
+# from core.models.final_leaderboard_points import FinalLeaderboardPoints
 
-from collections import defaultdict
-import uuid
+# from collections import defaultdict
+# import uuid
 
-DB = "company_w5ddym3d"
+# DB = "company_w5ddym3d"
 
-event_id = uuid.UUID("b68329a5-9e1b-4e1f-a239-488a3672b521")
+# event_id = uuid.UUID("b68329a5-9e1b-4e1f-a239-488a3672b521")
 
-# ✅ Step 1: Get all match-level points
-points_qs = LeaderboardPoints.objects.using(DB).all()
+# # ✅ Step 1: Get all match-level points
+# points_qs = LeaderboardPoints.objects.using(DB).all()
 
-# ✅ Step 2: Get sorted unique matches
-matches = sorted(
-    set((p.match_id, p.match_number) for p in points_qs),
-    key=lambda x: x[1] or 0
-)
+# # ✅ Step 2: Get sorted unique matches
+# matches = sorted(
+#     set((p.match_id, p.match_number) for p in points_qs),
+#     key=lambda x: x[1] or 0
+# )
 
-# ✅ Step 3: Initialize trackers
-cumulative_map = defaultdict(int)   # user -> cumulative points
-previous_rank_map = {}              # user -> previous rank
+# # ✅ Step 3: Initialize trackers
+# cumulative_map = defaultdict(int)   # user -> cumulative points
+# previous_rank_map = {}              # user -> previous rank
 
-created = 0
+# created = 0
 
-# ✅ Step 4: Process match by match
-for match_id, match_number in matches:
+# # ✅ Step 4: Process match by match
+# for match_id, match_number in matches:
 
-    # 🔹 Get all records for this match
-    match_records = [p for p in points_qs if p.match_id == match_id]
+#     # 🔹 Get all records for this match
+#     match_records = [p for p in points_qs if p.match_id == match_id]
 
-    # 🔹 Update cumulative scores
-    for r in match_records:
-        cumulative_map[r.leaderboard_user_id] += r.points1
+#     # 🔹 Update cumulative scores
+#     for r in match_records:
+#         cumulative_map[r.leaderboard_user_id] += r.points1
 
-    # 🔹 Prepare ranking list
-    ranking_list = [
-        (user_id, cumulative_map[user_id])
-        for user_id in cumulative_map
-    ]
+#     # 🔹 Prepare ranking list
+#     ranking_list = [
+#         (user_id, cumulative_map[user_id])
+#         for user_id in cumulative_map
+#     ]
 
-    # 🔥 Sort by points DESC
-    ranking_list.sort(key=lambda x: (-x[1], x[0]))
+#     # 🔥 Sort by points DESC
+#     ranking_list.sort(key=lambda x: (-x[1], x[0]))
 
-    # 🔹 Assign ranks
-    current_rank_map = {}
-    rank = 1
+#     # 🔹 Assign ranks
+#     current_rank_map = {}
+#     rank = 1
 
-    for idx, (user_id, points) in enumerate(ranking_list):
-        if idx > 0 and points < ranking_list[idx - 1][1]:
-            rank = idx + 1
-        current_rank_map[user_id] = rank
+#     for idx, (user_id, points) in enumerate(ranking_list):
+#         if idx > 0 and points < ranking_list[idx - 1][1]:
+#             rank = idx + 1
+#         current_rank_map[user_id] = rank
 
-    # 🔹 Insert records
-    for user_id, cumulative_points in ranking_list:
+#     # 🔹 Insert records
+#     for user_id, cumulative_points in ranking_list:
 
-        current_rank = current_rank_map[user_id]
-        previous_rank = previous_rank_map.get(user_id, 0)
+#         current_rank = current_rank_map[user_id]
+#         previous_rank = previous_rank_map.get(user_id, 0)
 
-        # ✅ Skip if already exists
-        if FinalLeaderboardPoints.objects.using(DB).filter(
-            leaderboard_user_id=user_id,
-            match_id=match_id
-        ).exists():
-            continue
+#         # ✅ Skip if already exists
+#         if FinalLeaderboardPoints.objects.using(DB).filter(
+#             leaderboard_user_id=user_id,
+#             match_id=match_id
+#         ).exists():
+#             continue
 
-        FinalLeaderboardPoints.objects.using(DB).create(
-            leaderboard_user_id=user_id,
-            match_id=match_id,
-            match_number=match_number,
-            points1=cumulative_points,
-            points2=cumulative_points,
-            rank=current_rank,
-            previous_rank=previous_rank
-        )
+#         FinalLeaderboardPoints.objects.using(DB).create(
+#             leaderboard_user_id=user_id,
+#             match_id=match_id,
+#             match_number=match_number,
+#             points1=cumulative_points,
+#             points2=cumulative_points,
+#             rank=current_rank,
+#             previous_rank=previous_rank
+#         )
 
-        created += 1
+#         created += 1
 
-    # 🔥 Update previous rank map for next match
-    previous_rank_map = current_rank_map.copy()
+#     # 🔥 Update previous rank map for next match
+#     previous_rank_map = current_rank_map.copy()
 
-print(f"✅ Final leaderboard records created: {created}")
+# print(f"✅ Final leaderboard records created: {created}")
 
 
 # add points for all users in the weekly leaderboard for a specific match

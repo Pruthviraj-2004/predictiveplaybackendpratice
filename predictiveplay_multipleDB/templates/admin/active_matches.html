@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Active Matches</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .match-container {
+            max-width: 600px;
+            margin: auto;
+        }
+
+        .match-card {
+            background: #ffffff;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .match-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+        }
+
+        .teams {
+            font-size: 16px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        .update-btn {
+            text-decoration: none;
+            background: #4CAF50;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+
+            transition: background 0.3s ease;
+        }
+
+        .update-btn:hover {
+            background: #45a049;
+        }
+
+        .empty {
+            text-align: center;
+            color: #888;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>🏏 Active Matches</h2>
+
+    <div class="match-container">
+
+        {% if matches %}
+            {% for match in matches %}
+                <div class="match-card">
+                    <div class="teams">
+                        {{ match.team1 }} vs {{ match.team2 }}
+                    </div>
+
+                    <a class="update-btn"
+                       href="{% url 'update-match-result-page' match.match_id %}">
+                        Update Result
+                    </a>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="empty">No active matches available</p>
+        {% endif %}
+
+    </div>
+
+</body>
+</html>

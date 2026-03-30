@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Match Result</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: auto;
+            background: #fff;
+            padding: 25px 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        h3 {
+            text-align: center;
+            color: #444;
+            margin-bottom: 10px;
+        }
+
+        .match-info {
+            text-align: center;
+            color: #777;
+            margin-bottom: 20px;
+        }
+
+        hr {
+            margin: 20px 0;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            margin-bottom: 15px;
+        }
+
+        select[multiple] {
+            height: 120px;
+        }
+
+        button {
+            width: 100%;
+            background: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>🏏 Update Match Result</h2>
+
+    <h3>
+        Match {{ match.display_match_id }} :
+        {{ match.team1.team_name }} vs {{ match.team2.team_name }}
+    </h3>
+
+    <p class="match-info">
+        Date: {{ match.match_date }} | Time: {{ match.match_time }}
+    </p>
+
+    <hr>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Winner -->
+        <label>Winning Team</label>
+        <select name="winner_team" required>
+            <option value="">Select Winner</option>
+            <option value="{{ match.team1.team_id }}">
+                {{ match.team1.team_name }}
+            </option>
+            <option value="{{ match.team2.team_id }}">
+                {{ match.team2.team_name }}
+            </option>
+        </select>
+
+        <!-- MOM -->
+        <label>Player of Match</label>
+        <div class="hint">Hold Ctrl (Windows) / Cmd (Mac) to select multiple</div>
+        <select name="player_of_match" multiple required>
+            {% for player in mom_players %}
+            <option value="{{ player.player_id }}">
+                {{ player.player_name }} ({{ player.team.short_name }})
+            </option>
+            {% endfor %}
+        </select>
+
+        <!-- Most Runs -->
+        <label>Most Runs</label>
+        <div class="hint">Hold Ctrl / Cmd to select multiple</div>
+        <select name="most_runs" multiple required>
+            {% for player in run_scorers %}
+            <option value="{{ player.player_id }}">
+                {{ player.player_name }} ({{ player.team.short_name }})
+            </option>
+            {% endfor %}
+        </select>
+
+        <!-- Most Wickets -->
+        <label>Most Wickets</label>
+        <div class="hint">Hold Ctrl / Cmd to select multiple</div>
+        <select name="most_wickets" multiple required>
+            {% for player in wicket_takers %}
+            <option value="{{ player.player_id }}">
+                {{ player.player_name }} ({{ player.team.short_name }})
+            </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">💾 Save Result</button>
+
+    </form>
+
+</div>
+
+</body>
+</html>

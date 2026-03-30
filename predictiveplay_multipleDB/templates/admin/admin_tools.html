@@ -1,0 +1,313 @@
+{% comment %} <!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Tools</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            margin-top: 100px;
+        }
+
+        button {
+            padding: 12px 25px;
+            margin: 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 6px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>PredictivePlay Admin Tools</h2>
+
+<form method="POST" action="/api/admin/v1/update-user-submissions/">
+    {% csrf_token %}
+    
+    <input type="hidden" name="match_id" value="{{ match_id }}">
+
+    <button type="submit"
+        onclick="return confirm('Update user submissions for this match?')">
+        Update User Submissions
+    </button>
+
+</form>
+
+<form method="POST" action="/api/admin/v1/update-leaderboard1/">
+    {% csrf_token %}
+    
+    <input type="hidden" name="match_id" value="{{ match_id }}">
+
+    <button type="submit"
+        onclick="return confirm('Update Leaderboard1 for this match?')">
+        Update Leaderboard1
+    </button>
+</form>
+
+<form method="POST" action="/api/admin/v1/update-final-leaderboard1/">
+    {% csrf_token %}
+    
+    <input type="hidden" name="match_id" value="{{ match_id }}">
+
+    <button type="submit"
+        onclick="return confirm('Update Final Leaderboard1 for this match?')">
+        Update Final Leaderboard1
+    </button>
+</form>
+
+{% if results %}
+
+<h3 style="margin-top:50px;">Update Results</h3>
+
+<table border="1" cellpadding="10" style="margin:auto; border-collapse: collapse;">
+    <thead>
+        <tr style="background:#f2f2f2;">
+            <th>Company DB</th>
+            <th>Updated Records</th>
+            <th>Message</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for r in results %}
+        <tr>
+            <td>{{ r.company_db }}</td>
+            <td>{{ r.updated_records }}</td>
+            <td>{{ r.message }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endif %}
+
+</body>
+</html> {% endcomment %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Tools</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        form {
+            width: 100%;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submissions {
+            background-color: #007bff;
+        }
+
+        .btn-submissions:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-leaderboard {
+            background-color: #28a745;
+        }
+
+        .btn-leaderboard:hover {
+            background-color: #1e7e34;
+        }
+
+        .btn-final {
+            background-color: #6f42c1;
+        }
+
+        .btn-final:hover {
+            background-color: #5936a2;
+        }
+
+        .section-title {
+            margin-top: 40px;
+            text-align: center;
+            color: #444;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        thead {
+            background-color: #f2f2f2;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+
+        tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        th {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .badge-success {
+            color: green;
+            font-weight: bold;
+        }
+
+        .badge-fail {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>⚙️ PredictivePlay Admin Tools</h2>
+
+<div class="container">
+
+    <div class="actions">
+
+        <!-- Update Submissions -->
+        <form method="POST" action="/api/admin/v1/update-user-submissions/">
+            {% csrf_token %}
+            <input type="hidden" name="match_id" value="{{ match_id }}">
+            <button class="btn-submissions"
+                onclick="return confirm('Update user submissions for this match?')">
+                🔄 Update User Submissions
+            </button>
+        </form>
+
+        <!-- Leaderboard -->
+        <form method="POST" action="/api/admin/v1/update-leaderboard1/">
+            {% csrf_token %}
+            <input type="hidden" name="match_id" value="{{ match_id }}">
+            <button class="btn-leaderboard"
+                onclick="return confirm('Update Leaderboard1 for this match?')">
+                📊 Update Leaderboard1
+            </button>
+        </form>
+
+        <!-- Final Leaderboard -->
+        <form method="POST" action="/api/admin/v1/update-final-leaderboard1/">
+            {% csrf_token %}
+            <input type="hidden" name="match_id" value="{{ match_id }}">
+            <button class="btn-final"
+                onclick="return confirm('Update Final Leaderboard1 for this match?')">
+                🏆 Update Final Leaderboard1
+            </button>
+        </form>
+
+    </div>
+
+    {% if results %}
+
+    <h3 class="section-title">📋 Update Results</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Company DB</th>
+                <th>Updated Records</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for r in results %}
+            <tr>
+                <td>{{ r.company_db }}</td>
+
+                <td>
+                    {% if r.updated_records %}
+                        {{ r.updated_records }}
+                    {% elif r.deleted_old_records %}
+                        Deleted: {{ r.deleted_old_records }} <br>
+                        Created: {{ r.created_new_records }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if r.message %}
+                        {{ r.message }}
+                    {% elif r.error %}
+                        ❌ {{ r.error }}
+                    {% else %}
+                        ✔ Success
+                    {% endif %}
+                </td>
+                
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% endif %}
+
+</div>
+
+</body>
+</html>

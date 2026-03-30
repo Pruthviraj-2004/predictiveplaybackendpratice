@@ -17,6 +17,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from core.views.token_refresh import CookieTokenRefreshView
 from core.views.leaderboard_views import LeaderboardBoardAPIViewV2, LeaderboardBoardPaginatedAPIViewV2, LeaderboardEventsAPIViewV2, UserLeaderboardsByEventAPIViewV2
 
+from core.views.view_admin import ActiveMatchesPageView, AdminToolsPageView, UpdateLeaderboard1View, UpdateMatchResultPageView, UpdateUserSubmissionsView, UpdateFinalLeaderboardView
 
 urlpatterns = [
     path("v1/register/", RegisterAPIView.as_view(), name="register"),
@@ -42,5 +43,13 @@ urlpatterns = [
     path("v2/my-submissions/event/<event_id>/", MySubmissionsByEventAPIViewV2.as_view(), name="my_submissions_by_event_v2"),
 
     path("v2/refresh/", RefreshTokenAPIView.as_view(), name="token_refresh"),
+
+
+    path("admin/v1/matches/active/<uuid:event_id>/", ActiveMatchesPageView.as_view(), name="active-matches-page"),
+    path("admin/v1/matches/<uuid:match_id>/update/", UpdateMatchResultPageView.as_view(), name="update-match-result-page"),
+    path("admin/v1/tools/<uuid:match_id>/", AdminToolsPageView.as_view(), name="admin-tools-page"),
+    path("admin/v1/update-user-submissions/",UpdateUserSubmissionsView.as_view(),name="update-user-submissions"),
+    path("admin/v1/update-leaderboard1/",UpdateLeaderboard1View.as_view(),name="update-leaderboard1"),
+    path("admin/v1/update-final-leaderboard1/",UpdateFinalLeaderboardView.as_view(),name="update-final-leaderboard1"),
 
 ]
