@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.utils import timezone
 from core.models.cricket_event import CricketEvent
+from core.models.cricket_match_winner_details import CricketMatchWinnerDetails
 from rest_framework.views import APIView
 
 from core.authentication import CookieJWTAuthentication
@@ -196,6 +197,34 @@ class MatchPredictionAPIViewV2(APIView):
             )
         ]
 
+        # ---------- ACTUAL MATCH RESULTS (default DB) ----------
+        winner_obj = CricketMatchWinnerDetails.objects.filter(
+            match=match
+        ).prefetch_related(
+            "player_of_match_1",
+            "most_runs_player_1",
+            "most_wickets_player_1"
+        ).first()
+
+        if winner_obj:
+            actual_results = {
+                "is_result_declared": True,
+                "winner_team_id": winner_obj.winner_team.team_id if winner_obj.winner_team else None,
+                "player_of_match_ids": list(
+                    winner_obj.player_of_match_1.values_list("player_id", flat=True)
+                ),
+                "most_runs_player_ids": list(
+                    winner_obj.most_runs_player_1.values_list("player_id", flat=True)
+                ),
+                "most_wickets_player_ids": list(
+                    winner_obj.most_wickets_player_1.values_list("player_id", flat=True)
+                ),
+            }
+        else:
+            actual_results = {
+                "is_result_declared": False
+            }
+
         # ---------- EXISTING SUBMISSION (company DB) ----------
         submission = UserSubmission.objects.using(db_alias).filter(
             user_id=user_id,
@@ -249,6 +278,7 @@ class MatchPredictionAPIViewV2(APIView):
                 "run_scorers": run_scorers,
                 "wicket_takers": wicket_takers,
                 "submission": submission_data,
+                "actual_results": actual_results,
             },
             status=status.HTTP_200_OK,
         )
