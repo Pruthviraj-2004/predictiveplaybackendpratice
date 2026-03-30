@@ -201,24 +201,30 @@ class MatchPredictionAPIViewV2(APIView):
         winner_obj = CricketMatchWinnerDetails.objects.filter(
             match=match
         ).prefetch_related(
-            "player_of_match_1",
-            "most_runs_player_1",
-            "most_wickets_player_1"
+            "player_of_match_1__team",
+            "most_runs_player_1__team",
+            "most_wickets_player_1__team"
         ).first()
 
         if winner_obj:
             actual_results = {
                 "is_result_declared": True,
                 "winner_team_id": winner_obj.winner_team.team_id if winner_obj.winner_team else None,
-                "player_of_match_ids": list(
-                    winner_obj.player_of_match_1.values_list("player_id", flat=True)
-                ),
-                "most_runs_player_ids": list(
-                    winner_obj.most_runs_player_1.values_list("player_id", flat=True)
-                ),
-                "most_wickets_player_ids": list(
-                    winner_obj.most_wickets_player_1.values_list("player_id", flat=True)
-                ),
+
+                "player_of_match": [
+                    serialize_player(p)
+                    for p in winner_obj.player_of_match_1.all()
+                ],
+
+                "most_runs_players": [
+                    serialize_player(p)
+                    for p in winner_obj.most_runs_player_1.all()
+                ],
+
+                "most_wickets_players": [
+                    serialize_player(p)
+                    for p in winner_obj.most_wickets_player_1.all()
+                ],
             }
         else:
             actual_results = {
