@@ -297,6 +297,12 @@ class MySubmissionsByEventAPIViewV2(APIView):
                 "team2": match.team2.team_name,
 
                 # ---------- Actual Results ----------
+
+                "actual_winner_team": (
+                    winner.winner_team.team_name
+                    if winner and winner.winner_team else None
+                ),
+
                 "actual_player_of_match": (
                     [p.player_name for p in winner.player_of_match_1.all()]
                     if winner else []
@@ -365,7 +371,7 @@ class MySubmissionsByEventAPIViewV2(APIView):
                 "match_date": match.match_date,
                 "match_time": match.match_time,
                 "status_id": match.get_status_id_display(),
-                
+
                 "location": match.location,
                 "stadium": match.stadium,
 
@@ -383,7 +389,7 @@ class MySubmissionsByEventAPIViewV2(APIView):
                     "team_short_name": match.team2.short_name,
                 },
             })
-        
+
         submission_rows = sorted(
             submission_rows,
             key=lambda x: x["match_display_id"],
@@ -395,7 +401,7 @@ class MySubmissionsByEventAPIViewV2(APIView):
             key=lambda x: x["match_display_id"],
             reverse=True
         )
-        
+
         upcoming_matches_data = sorted(
             upcoming_matches_data,
             key=lambda x: x["match_display_id"]
